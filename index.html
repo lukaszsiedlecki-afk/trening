@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mój Dziennik Treningowy</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#27ae60">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f9; margin: 0; padding: 15px; color: #333; }
+        .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; }
+        h2 { margin-top: 0; color: #2c3e50; }
+        label { display: block; margin: 10px 0 5px; font-weight: bold; }
+        select, input, button { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; font-size: 16px; }
+        button { background: #27ae60; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background: #219653; }
+        .accent-btn { background: #2980b9; }
+        .accent-btn:hover { background: #2471a3; }
+        .history-item { background: #eef2f3; padding: 8px; margin-top: 5px; border-radius: 4px; font-size: 14px; }
+        .last-session { background: #fff9db; border-left: 4px solid #f59f00; padding: 10px; margin-bottom: 15px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <h1>🏋️‍♂️ Dziennik Treningowy (PWA)</h1>
+
+    <div class="card">
+        <h2>1. Dodaj nowe ćwiczenie</h2>
+        <input type="text" id="newExerciseName" placeholder="np. Przysiad ze sztangą">
+        <button class="accent-btn" onclick="addExercise()">Dodaj do listy</button>
+    </div>
+
+    <div class="card">
+        <h2>2. Zapisz Serię</h2>
+        <label for="exerciseSelect">Wybierz ćwiczenie:</label>
+        <select id="exerciseSelect" onchange="updateLastSessionView()"></select>
+        <div id="lastSessionInfo" class="last-session">Brak historii dla tego ćwiczenia.</div>
+        <label for="weightInput">Ciężar (kg):</label>
+        <input type="number" id="weightInput" placeholder="0" step="0.5">
+        <label for="repsInput">Powtórzenia:</label>
+        <input type="number" id="repsInput" placeholder="0">
+        <button onclick="addSet()">Zapisz Serię</button>
+    </div>
+
+    <div class="card">
+        <h2>Dzisiejsze serie</h2>
+        <div id="todaySetsList"></div>
+    </div>
+
+    <script>
+        let exercises = JSON.parse(localStorage.getItem('exercises')) || ["Wyciskanie na płaskiej", "Martwy ciąg"];
+        let dataLog = JSON.parse(localStorage.getItem('dataLog')) || [];
+
+        function init() {
+            updateExerciseDropdown();
+            updateLastSessionView();
+            renderTodaySets();
+        }
+
+        function updateExerciseDropdown() {
+            const select = document.getElementById('exerciseSelect');
+            select.innerHTML = '';
+            exercises.forEach(ex => {
+                const option = document.createElement('option');
+                option.value = ex;
+                option.textContent = ex;
+                select.appendChild(option);
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", init);
+
+        function addExercise() {
+            const input = document.getElementById('newExerciseName');
+            const name = input.value.trim();
+            if (name && !exercises.includes(name)) {
+                exercises.push(name);
+                localStorage.setItem('exercises', JSON.stringify(exercises));
+                updateExerciseDropdown();
+                document.getElementById('exerciseSelect').value = name;
+                updateLastSessionView();
+                input.value = '';
+            }
+        }
+
+        function updateLastSessionView() {
+            const selectedExercise = document.getElementById('exerciseSelect').value;
+            const infoBox = document.getElementById('lastSessionInfo');
+            if (!selectedExercise) { infoBox.innerHTML = "Najpierw dodaj ćwiczenie."; return; }
+            const exerciseHistory = dataLog.filter(set => set.exercise === selectedExercise);
+            if (exerciseHistory.length === 0) { infoBox.innerHTML = "ℹ️ Pierwszy trening z tym ćwiczeniem!"; return; }
+            const lastDate = exerciseHistory[exerciseHistory.length - 1].date;
+            const lastSessionSets = exerciseHistory.filter(set => set.date === lastDate);
+            let html = `<strong>Ostatnio (${lastDate}):</strong><br>`;
+            lastSessionSets.forEach((set, index) => { html += `S${index + 1}: ${set.weight}kg x ${set.reps}<br>`; });
+            infoBox.innerHTML = html;
+        }
+
+        function addSet() {
+            const exercise = document.getElementById('exerciseSelect').value;
+            const weight = parseFloat(document.getElementById('weightInput').value);
+            const reps = parseInt(document.getElementById('repsInput').value);
+            const today = new Date().toLocaleDateString('pl-PL');
+            if (!exercise || isNaN(weight) || isNaN(reps)) { alert("Wpisz poprawne dane!"); return; }
+            dataLog.push({ exercise, weight, reps, date: today });
+            localStorage.setItem('dataLog', JSON.stringify(dataLog));
+            renderTodaySets();
+            updateLastSessionView();
+            document.getElementById('weightInput').value = '';
+            document.getElementById('repsInput').value = '';
+        }
+
+        function renderTodaySets() {
+            const container = document.getElementById('todaySetsList');
+            container.innerHTML = '';
+            const today = new Date().toLocaleDateString('pl-PL');
+            const todaySets = dataLog.filter(set => set.date === today);
+            if (todaySets.length === 0) { container.innerHTML = "<p style='color:gray;'>Brak serii z dzisiaj.</p>"; return; }
+            todaySets.forEach(set => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `<strong>${set.exercise}</strong>: ${set.weight}kg x ${set.reps}`;
+                container.appendChild(div);
+            });
+        }
+
+        // REJESTRACJA SERVICE WORKERA (Magia offline)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+            .then(() => console.log("Aplikacja gotowa do pracy offline!"))
+            .catch(err => console.log("Błąd rejestracji offline:", err));
+        }
+    </script>
+</body>
+</html>
