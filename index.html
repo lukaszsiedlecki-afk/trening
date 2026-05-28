@@ -7,43 +7,61 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#27ae60">
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f9; margin: 0; padding: 15px 15px 75px 15px; color: #333; }
-        .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; }
+        /* DOMYŚLNE STYLE (JASNE) */
+        body { font-family: Arial, sans-serif; background: #f4f4f9; margin: 0; padding: 15px 15px 75px 15px; color: #333; transition: background 0.3s, color 0.3s; }
+        .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; transition: background 0.3s; }
+        h1 { margin: 0; font-size: 24px; }
         h2 { margin-top: 0; color: #2c3e50; font-size: 20px; }
         label { display: block; margin: 10px 0 5px; font-weight: bold; }
-        select, input, button { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; font-size: 16px; }
+        select, input, button { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; font-size: 16px; background: white; color: #333; }
         
         button { background: #27ae60; color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
         button:hover { background: #219653; }
         .accent-btn { background: #2980b9; }
         .accent-btn:hover { background: #2471a3; }
         
-        /* Czerwone przyciski usuwania */
-        .delete-btn { background: #e74c3c; padding: 6px 10px; width: auto; font-size: 14px; margin: 0; border-radius: 4px; }
+        .delete-btn { background: #e74c3c; padding: 6px 10px; width: auto; font-size: 14px; margin: 0; border-radius: 4px; color: white; }
         .delete-btn:hover { background: #c0392b; }
         
-        /* Listy i elementy */
         .flex-row { display: flex; justify-content: space-between; align-items: center; background: #eef2f3; padding: 10px; margin-top: 6px; border-radius: 6px; }
         .last-session { background: #fff9db; border-left: 4px solid #f59f00; padding: 12px; margin-bottom: 15px; font-size: 14px; border-radius: 0 6px 6px 0; }
-        
-        /* Statystyki dnia */
         .summary-box { background: #e8f8f5; border-left: 4px solid #2cc9a8; padding: 10px; margin-bottom: 10px; font-size: 14px; border-radius: 0 6px 6px 0; }
 
-        /* Dolne Menu (Nawigacja) */
+        /* Nagłówek strony z przyciskiem motywu */
+        .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .theme-toggle-btn { width: auto; margin: 0; padding: 8px 12px; font-size: 14px; background: #7f8c8d; }
+
+        /* Dolne Menu */
         .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; }
-        .nav-item { flex: 1; text-align: center; padding: 15px 0; font-weight: bold; color: #7f8c8d; cursor: pointer; font-size: 14px; transition: 0.2s; }
+        .nav-item { flex: 1; text-align: center; padding: 15px 0; font-weight: bold; color: #7f8c8d; cursor: pointer; font-size: 14px; }
         .nav-item.active { color: #27ae60; background: #f9f9f9; border-top: 3px solid #27ae60; }
         
-        /* Ukrywanie sekcji */
         .app-page { display: none; }
         .app-page.active { display: block; }
+
+        /* ==========================================================================
+           STYLE DLA TRYBU CIEMNEGO (.dark-mode)
+           ========================================================================== */
+        body.dark-mode { background: #121212; color: #e0e0e0; }
+        body.dark-mode .card { background: #1e1e1e; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+        body.dark-mode h2 { color: #a3e2d4; }
+        body.dark-mode select, body.dark-mode input { background: #2d2d2d; color: #fff; border: 1px solid #444; }
+        body.dark-mode .flex-row { background: #2d2d2d; color: #fff; }
+        body.dark-mode .last-session { background: #332b00; border-left-color: #ffd43b; color: #ffe066; }
+        body.dark-mode .summary-box { background: #002b22; border-left-color: #2cc9a8; color: #a3e2d4; }
+        body.dark-mode .nav-bar { background: #1e1e1e; box-shadow: 0 -2px 10px rgba(0,0,0,0.5); }
+        body.dark-mode .nav-item.active { background: #252525; color: #2cc9a8; border-top-color: #2cc9a8; }
+        body.dark-mode .theme-toggle-btn { background: #f1c40f; color: #333; }
     </style>
 </head>
 <body>
 
+    <div class="header-area">
+        <h1 id="app-title">🏋️‍♂️ Trening</h1>
+        <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()">🌙 Ciemny</button>
+    </div>
+
     <div id="page-workout" class="app-page active">
-        <h1>🏋️‍♂️ Nowy Trening</h1>
-        
         <div class="card">
             <h2>Zapisz Serię</h2>
             <label for="exerciseSelect">Wybierz ćwiczenie:</label>
@@ -67,13 +85,13 @@
     </div>
 
     <div id="page-history" class="app-page">
-        <h1>📅 Historia Treningów</h1>
-        <div id="historyContainer"></div>
+        <div class="card">
+            <h2>Historia Treningów</h2>
+            <div id="historyContainer"></div>
+        </div>
     </div>
 
     <div id="page-exercises" class="app-page">
-        <h1>⚙️ Lista Ćwiczeń</h1>
-        
         <div class="card">
             <h2>Dodaj nowe ćwiczenie</h2>
             <input type="text" id="newExerciseName" placeholder="np. Podciąganie na drążku">
@@ -87,17 +105,20 @@
     </div>
 
     <div class="nav-bar">
-        <div id="nav-workout" class="nav-item active" onclick="switchPage('workout')">💪 Trening</div>
-        <div id="nav-history" class="nav-item" onclick="switchPage('history')">📅 Historia</div>
-        <div id="nav-exercises" class="nav-item" onclick="switchPage('exercises')">⚙️ Ćwiczenia</div>
+        <div id="nav-workout" class="nav-item active" onclick="switchPage('workout', '🏋️‍♂️ Trening')">💪 Trening</div>
+        <div id="nav-history" class="nav-item" onclick="switchPage('history', '📅 Historia')">📅 Historia</div>
+        <div id="nav-exercises" class="nav-item" onclick="switchPage('exercises', '⚙️ Ćwiczenia')">⚙️ Ćwiczenia</div>
     </div>
 
     <script>
-        // Ładowanie bazy danych
         let exercises = JSON.parse(localStorage.getItem('exercises')) || ["Wyciskanie na płaskiej", "Martwy ciąg", "Przysiad ze sztangą"];
         let dataLog = JSON.parse(localStorage.getItem('dataLog')) || [];
+        
+        // Zmienna przechowująca informację o trybie ciemnym
+        let isDarkMode = localStorage.getItem('darkMode') === 'true';
 
         function init() {
+            applyTheme(); // Zastosuj zapisany motyw od razu przy starcie
             updateExerciseDropdown();
             updateLastSessionView();
             renderTodaySets();
@@ -105,13 +126,34 @@
             renderHistory();
         }
 
-        // Nawigacja między stronami (menu)
-        function switchPage(pageId) {
+        // LOGIKA ZMIANY MOTYWU (JASNY / CIEMNY)
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            localStorage.setItem('darkMode', isDarkMode); // Zapisz wybór w pamięci telefonu
+            applyTheme();
+        }
+
+        function applyTheme() {
+            const body = document.body;
+            const btn = document.getElementById('themeToggleBtn');
+            
+            if (isDarkMode) {
+                body.classList.add('dark-mode');
+                btn.textContent = "☀️ Jasny";
+            } else {
+                body.classList.remove('dark-mode');
+                btn.textContent = "🌙 Ciemny";
+            }
+        }
+
+        // Nawigacja między stronami
+        function switchPage(pageId, titleText) {
             document.querySelectorAll('.app-page').forEach(page => page.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             
             document.getElementById(`page-${pageId}`).classList.add('active');
             document.getElementById(`nav-${pageId}`).classList.add('active');
+            document.getElementById('app-title').textContent = titleText;
             
             if(pageId === 'history') renderHistory();
             if(pageId === 'workout') { renderTodaySets(); updateLastSessionView(); }
@@ -119,6 +161,7 @@
 
         function updateExerciseDropdown() {
             const select = document.getElementById('exerciseSelect');
+            if(!select) return;
             select.innerHTML = '';
             exercises.forEach(ex => {
                 const option = document.createElement('option');
@@ -128,7 +171,6 @@
             });
         }
 
-        // 1. ZARZĄDZANIE ĆWICZENIAMI (DODAWANIE / USUWANIE)
         function addExercise() {
             const input = document.getElementById('newExerciseName');
             const name = input.value.trim();
@@ -141,7 +183,7 @@
         }
 
         function deleteExercise(index) {
-            if(confirm(`Czy na pewno chcesz usunąć ćwiczenie: "${exercises[index]}"? Utracisz podgląd historii tego ćwiczenia.`)) {
+            if(confirm(`Czy na pewno chcesz usunąć ćwiczenie: "${exercises[index]}"?`)) {
                 exercises.splice(index, 1);
                 saveExercises();
                 init();
@@ -150,6 +192,7 @@
 
         function renderCustomExercisesList() {
             const container = document.getElementById('customExercisesList');
+            if(!container) return;
             container.innerHTML = '';
             exercises.forEach((ex, index) => {
                 const div = document.createElement('div');
@@ -162,7 +205,6 @@
         function saveExercises() { localStorage.setItem('exercises', JSON.stringify(exercises)); }
         function saveDataLog() { localStorage.setItem('dataLog', JSON.stringify(dataLog)); }
 
-        // Podgląd ostatniej sesji
         function updateLastSessionView() {
             const selectedExercise = document.getElementById('exerciseSelect').value;
             const infoBox = document.getElementById('lastSessionInfo');
@@ -179,7 +221,6 @@
             infoBox.innerHTML = html;
         }
 
-        // Zapisywanie serii
         function addSet() {
             const exercise = document.getElementById('exerciseSelect').value;
             const weight = parseFloat(document.getElementById('weightInput').value);
@@ -197,7 +238,6 @@
             document.getElementById('repsInput').value = '';
         }
 
-        // Usuwanie pojedynczej serii po unikalnym ID
         function deleteSet(setId) {
             if(confirm("Usunąć tę serię?")) {
                 dataLog = dataLog.filter(set => set.id !== setId);
@@ -210,6 +250,7 @@
 
         function renderTodaySets() {
             const container = document.getElementById('todaySetsList');
+            if(!container) return;
             container.innerHTML = '';
             const today = new Date().toLocaleDateString('pl-PL');
             const todaySets = dataLog.filter(set => set.date === today);
@@ -225,14 +266,13 @@
             });
         }
 
-        // 3. KREOWANIE HISTORII I AUTOMATYCZNYCH PODSUMOWAŃ DNI
         function renderHistory() {
             const container = document.getElementById('historyContainer');
+            if(!container) return;
             container.innerHTML = '';
             
-            if(dataLog.length === 0) { container.innerHTML = "<p style='color:gray; padding:15px;'>Twoja historia jest jeszcze pusta.</p>"; return; }
+            if(dataLog.length === 0) { container.innerHTML = "<p style='color:gray;'>Twoja historia jest jeszcze pusta.</p>"; return; }
             
-            // Grupowanie danych po datach (od najnowszych)
             const groupedByDate = {};
             dataLog.forEach(set => {
                 if(!groupedByDate[set.date]) groupedByDate[set.date] = [];
@@ -247,28 +287,23 @@
 
             sortedDates.forEach(date => {
                 const sets = groupedByDate[date];
-                
-                // Obliczanie statystyk do podsumowania dnia
                 const uniqueExercises = [...new Set(sets.map(s => s.exercise))].length;
                 const totalReps = sets.reduce((sum, s) => sum + s.reps, 0);
                 const totalVolume = sets.reduce((sum, s) => sum + (s.weight * s.reps), 0);
 
                 const dayCard = document.createElement('div');
-                dayCard.className = 'card';
+                dayCard.style.marginBottom = "20px";
+                dayCard.style.borderBottom = "1px dashed #ccc";
+                dayCard.style.paddingBottom = "10px";
                 
-                let html = `<h2 style="color:#27ae60;">📅 ${date}</h2>`;
-                
-                // Blok podsumowania
+                let html = `<h3 style="margin-bottom:5px;">📅 ${date}</h3>`;
                 html += `<div class="summary-box">
-                            <strong>Podsumowanie treningu:</strong><br>
                             🏋️‍♂️ Ćwiczeń: ${uniqueExercises} | 🔄 Serii: ${sets.length}<br>
-                            📊 Łącznie powtórzeń: ${totalReps}<br>
-                            💪 Przerzucony ciężar (tonaż): ${totalVolume.toFixed(1)} kg
+                            📊 Powtórzeń: ${totalReps} | 💪 Tonaż: ${totalVolume.toFixed(1)} kg
                          </div>`;
                 
-                // Lista wykonanych serii w tym dniu z przyciskiem usuwania
                 sets.forEach(set => {
-                    html += `<div class="flex-row" style="background:#fdfefe; border: 1px solid #eef2f3;">
+                    html += `<div class="flex-row" style="font-size:14px; margin-top:4px;">
                                 <span><strong>${set.exercise}</strong>: ${set.weight}kg x ${set.reps}</span>
                                 <button class="delete-btn" onclick="deleteSet(${set.id})">Usuń</button>
                              </div>`;
@@ -280,6 +315,12 @@
         }
 
         document.addEventListener("DOMContentLoaded", init);
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+            .then(() => console.log("Offline ready!"))
+            .catch(err => console.log("SW error:", err));
+        }
     </script>
 </body>
 </html>
