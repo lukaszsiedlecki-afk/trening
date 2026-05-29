@@ -51,9 +51,36 @@
         .app-page { display: none; }
         .app-page.active { display: block; }
 
-        /* MODYFIKACJA: ULEPSZONY TRYB CIEMNY */
-        body.dark-mode { background: #121212; color: #e0e0e0; color-scheme: dark; } /* color-scheme wymusza ciemne menu systemowe */
-        body.dark-mode option { background: #1e1e1e; color: #fff; } /* Kolor tła dla pojedynczych opcji */
+        /* MODYFIKACJA v6: BARDZIEJ AGRESYWNY TRYB CIEMNY DLA SELECTÓW */
+        body.dark-mode { 
+            background: #121212; 
+            color: #e0e0e0; 
+            /*color-scheme: dark; <- USUŃ JĄ, jeśli była. To ona nam psuje Portrait mode */
+        } 
+        
+        /* Agresywne, manualne stylowanie zamkniętego pola select */
+        body.dark-mode select, body.dark-mode input { 
+            background: #1a1a1a; 
+            color: #fff; 
+            border: 1px solid #444; 
+            appearance: none; 
+            -webkit-appearance: none; 
+        }
+        
+        /* Stylowanie otwartego dropdownu */
+        body.dark-mode select option { 
+            background: #1e1e1e; 
+            color: #fff; 
+        }
+
+        /* Upewniamy się, że polom wprowadzania w dropdownach też narzucamy ciemność */
+        body.dark-mode .flex-row select,
+        body.dark-mode .flex-row input {
+            background: #1a1a1a;
+            color: #fff;
+            border: 1px solid #444;
+        }
+
         body.dark-mode .card { background: #1e1e1e; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
         body.dark-mode h2 { color: #2cc9a8; }
         body.dark-mode select, body.dark-mode input { background: #2d2d2d; color: #fff; border: 1px solid #444; }
