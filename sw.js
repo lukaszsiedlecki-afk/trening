@@ -1,22 +1,20 @@
-const CACHE_NAME = 'trening-v9';
+const CACHE_NAME = 'trening-v10'; // Podbicie wersji do v10
 const ASSETS = [
   './',
   './index.html',
   './manifest.json'
 ];
 
-// Instalacja i natychmiastowe wymuszenie nowej wersji
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS);
     }).then(() => {
-      return self.skipWaiting(); // MODYFIKACJA v9: Nie czekaj na zamknięcie kart deaktywujących aplikację
+      return self.skipWaiting();
     })
   );
 });
 
-// Aktywacja i agresywne usuwanie poprzednich cache-y
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -28,7 +26,7 @@ self.addEventListener('activate', (e) => {
         })
       );
     }).then(() => {
-      return self.clients.claim(); // MODYFIKACJA v9: Natychmiastowe przejęcie kontroli nad aplikacją
+      return self.clients.claim();
     })
   );
 });

@@ -42,7 +42,7 @@
         .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .theme-toggle-btn { width: auto; margin: 0; padding: 8px 12px; font-size: 14px; background: #7f8c8d; }
         
-        /* Stopka z wersją i przyciskiem nuklearnym */
+        /* Stopka z wersją */
         .version-tag { font-size: 11px; color: #7f8c8d; text-align: center; margin-top: 15px; opacity: 0.7; }
         .nuclear-link { color: #e74c3c; cursor: pointer; text-decoration: underline; margin-left: 10px; font-weight: bold; }
 
@@ -78,6 +78,7 @@
     <div id="page-workout" class="app-page active">
         <div class="card">
             <h2>Zapisz Serię</h2>
+            
             <label for="categorySelect">Wybierz partię ciała:</label>
             <select id="categorySelect" onchange="updateExerciseDropdown()"></select>
 
@@ -101,7 +102,7 @@
         </div>
 
         <div class="version-tag">
-            Wersja: v9 | <span class="nuclear-link" onclick="forceNuclearReset()">[Wymuś Reset Apki]</span>
+            Wersja: v10 | <span class="nuclear-link" onclick="forceNuclearReset()">[Wymuś Reset Apki]</span>
         </div>
     </div>
 
@@ -110,6 +111,13 @@
     </div>
 
     <div id="page-exercises" class="app-page">
+        <div class="card">
+            <h2>Zarządzaj partiami ciała</h2>
+            <input type="text" id="newCategoryName" placeholder="np. Przedramiona">
+            <button class="accent-btn" onclick="addCategory()">Dodaj partię ciała</button>
+            <div id="customCategoriesList"></div>
+        </div>
+
         <div class="card">
             <h2>Dodaj nowe ćwiczenie</h2>
             <input type="text" id="newExerciseName" placeholder="np. Podciąganie na drążku">
@@ -127,11 +135,13 @@
     <div class="nav-bar">
         <div id="nav-workout" class="nav-item active" onclick="switchPage('workout', '🏋️‍♂️ Trening')">💪 Trening</div>
         <div id="nav-history" class="nav-item" onclick="switchPage('history', '📅 Historia')">📅 Historia</div>
-        <div id="nav-exercises" class="nav-item" onclick="switchPage('exercises', '⚙️ Ćwiczenia')">⚙️ Ćwiczenia</div>
+        <div id="nav-exercises" class="nav-item" onclick="switchPage('exercises', '⚙️ Ustawienia')">⚙️ Ustawienia</div>
     </div>
 
     <script>
-        const categories = ["Klatka", "Plecy", "Biceps", "Triceps", "Nogi", "Brzuch"];
+        // MODYFIKACJA v10: Dynamiczne ładowanie partii ciała z pamięci telefonu
+        let categories = JSON.parse(localStorage.getItem('categories')) || ["Klatka", "Plecy", "Biceps", "Triceps", "Nogi", "Brzuch"];
+
         const defaultExercises = [
             { name: "Wyciskanie na płaskiej", category: "Klatka" },
             { name: "Martwy ciąg", category: "Plecy" },
@@ -159,31 +169,76 @@
             updateExerciseDropdown();
             renderTodaySets();
             renderCustomExercisesList();
+            renderCustomCategoriesList(); // Zbuduj listę partii na ekranie ustawień
             renderHistory();
         }
 
-        // KOD NUKLEARNY v9: Czyści cache, unieważnia service workery i resetuje pamięć
         function forceNuclearReset() {
-            if (confirm("Ta operacja usunie stare pliki z pamięci telefonu, zresetuje bazę danych i pobierze najnowszą wersję v9 z sieci. Kontynuować?")) {
-                // 1. Wyrejestrowanie Service Workerów
+            if (confirm("Ta operacja usunie stare pliki z pamięci telefonu, zresetuje CAŁĄ bazę danych (treningi i partie) i pobierze najnowszą wersję v10 z sieci. Kontynuować?")) {
                 if ('serviceWorker' in navigator) {
                     navigator.serviceWorker.getRegistrations().then(registrations => {
                         for(let registration of registrations) { registration.unregister(); }
                     });
                 }
-                // 2. Czyszczenie Cache Storage plików
                 if ('caches' in window) {
                     caches.keys().then(names => {
                         for (let name of names) caches.delete(name);
                     });
                 }
-                // 3. Czyszczenie bazy treningów
                 localStorage.clear();
-                
-                alert("Czyszczenie zakończone! Strona zostanie przeładowana, aby pobrać czyste v9.");
+                alert("Czyszczenie zakończone! Strona zostanie przeładowana, aby pobrać czyste v10.");
                 window.location.reload(true);
             }
         }
+
+        // MODYFIKACJA v10: Zarządzanie partiami ciała (Dodawanie / Usuwanie z blokadą)
+        function addCategory() {
+            const input = document.getElementById('newCategoryName');
+            const name = input.value.trim();
+            if (name && !categories.includes(name)) {
+                categories.push(name);
+                saveCategories();
+                input.value = '';
+                init();
+            } else if(categories.includes(name)) {
+                alert("Taka partia ciała już istnieje!");
+            }
+        }
+
+        function deleteCategory(index) {
+            const catToDelete = categories[index];
+            
+            // PEWNA METODA BLOKADY: Sprawdzamy czy partia ma przypisane jakieś ćwiczenia
+            const hasExercises = exercises.some(ex => ex.category === catToDelete);
+            
+            if (hasExercises) {
+                alert(`Nie można usunąć partii "${catToDelete}", ponieważ są do niej przypisane ćwiczenia. Usuń najpierw te ćwiczenia z listy poniżej.`);
+                return;
+            }
+            
+            if (confirm(`Czy na pewno chcesz usunąć partię ciała: "${catToDelete}"?`)) {
+                categories.splice(index, 1);
+                saveCategories();
+                init();
+            }
+        }
+
+        function renderCustomCategoriesList() {
+            const container = document.getElementById('customCategoriesList');
+            if(!container) return;
+            container.innerHTML = '';
+            categories.forEach((cat, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex-row';
+                div.innerHTML = `<span><strong>${cat}</strong></span> 
+                                 <button class="delete-btn" onclick="deleteCategory(${index})">Usuń</button>`;
+                container.appendChild(div);
+            });
+        }
+
+        function saveCategories() { localStorage.setItem('categories', JSON.stringify(categories)); }
+        function saveExercises() { localStorage.setItem('exercises', JSON.stringify(exercises)); }
+        function saveDataLog() { localStorage.setItem('dataLog', JSON.stringify(dataLog)); }
 
         function toggleTheme() {
             isDarkMode = !isDarkMode;
@@ -301,9 +356,6 @@
             });
         }
 
-        function saveExercises() { localStorage.setItem('exercises', JSON.stringify(exercises)); }
-        function saveDataLog() { localStorage.setItem('dataLog', JSON.stringify(dataLog)); }
-
         function updateLastSessionView() {
             const selectedExercise = document.getElementById('exerciseSelect').value;
             const infoBox = document.getElementById('lastSessionInfo');
@@ -322,7 +374,7 @@
             const weight = parseFloat(document.getElementById('weightInput').value);
             const reps = parseInt(document.getElementById('repsInput').value);
             const today = new Date().toLocaleDateString('pl-PL');
-            if (!exercise || isNaN(weight) || isNaN(reps)) { alert("Wpisz profesjonalne dane!"); return; }
+            if (!exercise || isNaN(weight) || isNaN(reps)) { alert("Wpisz poprawne dane!"); return; }
             dataLog.push({ id: Date.now(), exercise, weight, reps, date: today });
             saveDataLog();
             renderTodaySets();
