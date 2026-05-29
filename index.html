@@ -20,6 +20,10 @@
         .accent-btn { background: #2980b9; color: white; }
         .accent-btn:hover { background: #2471a3; }
         
+        /* MODYFIKACJA v11: Styl dla przycisków kopii zapasowej (Fioletowy) */
+        .backup-btn { background: #8e44ad; color: white; margin-bottom: 8px; }
+        .backup-btn:hover { background: #732d91; }
+        
         .delete-btn { background: #e74c3c; padding: 6px 10px; width: auto; font-size: 14px; margin: 0; border-radius: 4px; color: white; }
         .delete-btn:hover { background: #c0392b; }
         
@@ -78,7 +82,6 @@
     <div id="page-workout" class="app-page active">
         <div class="card">
             <h2>Zapisz Serię</h2>
-            
             <label for="categorySelect">Wybierz partię ciała:</label>
             <select id="categorySelect" onchange="updateExerciseDropdown()"></select>
 
@@ -102,11 +105,19 @@
         </div>
 
         <div class="version-tag">
-            Wersja: v10 | <span class="nuclear-link" onclick="forceNuclearReset()">[Wymuś Reset Apki]</span>
+            Wersja: v11 | <span class="nuclear-link" onclick="forceNuclearReset()">[Wymuś Reset Apki]</span>
         </div>
     </div>
 
     <div id="page-history" class="app-page">
+        <div class="card">
+            <h2>Kopia zapasowa danych</h2>
+            <button class="backup-btn" onclick="exportData()">💾 Zapisz historię do pliku</button>
+            <button class="backup-btn" onclick="document.getElementById('importFileInput').click()">📂 Wgraj historię z pliku</button>
+            
+            <input type="file" id="importFileInput" style="display:none" accept=".json" onchange="importData(event)">
+        </div>
+
         <div id="historyContainer"></div>
     </div>
 
@@ -139,7 +150,6 @@
     </div>
 
     <script>
-        // MODYFIKACJA v10: Dynamiczne ładowanie partii ciała z pamięci telefonu
         let categories = JSON.parse(localStorage.getItem('categories')) || ["Klatka", "Plecy", "Biceps", "Triceps", "Nogi", "Brzuch"];
 
         const defaultExercises = [
@@ -169,12 +179,76 @@
             updateExerciseDropdown();
             renderTodaySets();
             renderCustomExercisesList();
-            renderCustomCategoriesList(); // Zbuduj listę partii na ekranie ustawień
+            renderCustomCategoriesList();
             renderHistory();
         }
 
+        // MODYFIKACJA v11: Funkcja eksportu całego localStorage do jednego pliku JSON
+        function exportData() {
+            const backupData = {
+                categories: categories,
+                exercises: exercises,
+                dataLog: dataLog
+            };
+            
+            // Tworzenie pliku w pamięci bez użycia internetu
+            const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            
+            // Wygenerowanie niewidzialnego linku i zasymulowanie kliknięcia pobierania
+            const a = document.createElement('a');
+            a.href = url;
+            const dateStr = new Date().toLocaleDateString('pl-PL').replace(/\./g, '-');
+            a.download = `backup_trening_${dateStr}.json`;
+            
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url); // czyszczenie pamięci podręcznej przeglądarki
+        }
+
+        // MODYFIKACJA v11: Funkcja importu (odczytu) danych z wybranego pliku JSON
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    
+                    // Podstawowa weryfikacja poprawności pliku
+                    if (imported.categories && imported.exercises && imported.dataLog) {
+                        if (confirm("Pomyślnie odczytano kopię zapasową! Uwaga: Spowoduje to nadpisanie obecnych danych w telefonie. Kontynuować?")) {
+                            categories = imported.categories;
+                            exercises = imported.exercises;
+                            dataLog = imported.dataLog;
+
+                            saveCategories();
+                            saveExercises();
+                            saveDataLog();
+
+                            alert("Historia i ustawienia zostały pomyślnie przywrócone!");
+                            window.location.reload();
+                        }
+                    } else {
+                        alert("Błąd: Wybrany plik nie jest poprawnym plikiem kopii zapasowej tego dziennika.");
+                    }
+                } catch (err) {
+                    alert("Wystąpił błąd podczas odczytywania pliku. Upewnij się, że plik nie jest uszkodzony.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // MODYFIKACJA v11: Inteligentny reset - najpierw proponuje wykonanie kopii zapasowej
         function forceNuclearReset() {
-            if (confirm("Ta operacja usunie stare pliki z pamięci telefonu, zresetuje CAŁĄ bazę danych (treningi i partie) i pobierze najnowszą wersję v10 z sieci. Kontynuować?")) {
+            const wantBackup = confirm("Zanim wyczyścisz aplikację: Czy chcesz najpierw pobrać plik z KOPIĄ ZAPASOWĄ Twoich treningów i partii ciała? (Zalecane)");
+            if (wantBackup) {
+                exportData();
+            }
+            
+            if (confirm("ZROBIONO KOPIĘ (lub zrezygnowano). Czy na pewno chcesz TERAZ WYCZYŚCIĆ całą aplikację? Wszystkie dane w telefonie zostaną bezpowrotnie usunięte!")) {
                 if ('serviceWorker' in navigator) {
                     navigator.serviceWorker.getRegistrations().then(registrations => {
                         for(let registration of registrations) { registration.unregister(); }
@@ -186,12 +260,11 @@
                     });
                 }
                 localStorage.clear();
-                alert("Czyszczenie zakończone! Strona zostanie przeładowana, aby pobrać czyste v10.");
+                alert("Aplikacja wyczyszczona! Strona zostanie przeładowana, aby pobrać czyste v11.");
                 window.location.reload(true);
             }
         }
 
-        // MODYFIKACJA v10: Zarządzanie partiami ciała (Dodawanie / Usuwanie z blokadą)
         function addCategory() {
             const input = document.getElementById('newCategoryName');
             const name = input.value.trim();
@@ -200,22 +273,16 @@
                 saveCategories();
                 input.value = '';
                 init();
-            } else if(categories.includes(name)) {
-                alert("Taka partia ciała już istnieje!");
-            }
+            } else if(categories.includes(name)) { alert("Taka partia ciała już istnieje!"); }
         }
 
         function deleteCategory(index) {
             const catToDelete = categories[index];
-            
-            // PEWNA METODA BLOKADY: Sprawdzamy czy partia ma przypisane jakieś ćwiczenia
             const hasExercises = exercises.some(ex => ex.category === catToDelete);
-            
             if (hasExercises) {
-                alert(`Nie można usunąć partii "${catToDelete}", ponieważ są do niej przypisane ćwiczenia. Usuń najpierw te ćwiczenia z listy poniżej.`);
+                alert(`Nie można usunąć partii "${catToDelete}", ponieważ są do niej przypisane ćwiczenia.`);
                 return;
             }
-            
             if (confirm(`Czy na pewno chcesz usunąć partię ciała: "${catToDelete}"?`)) {
                 categories.splice(index, 1);
                 saveCategories();
@@ -362,9 +429,9 @@
             if (!selectedExercise) { infoBox.innerHTML = "Wybierz lub dodaj ćwiczenie."; return; }
             const exerciseHistory = dataLog.filter(set => set.exercise === selectedExercise);
             if (exerciseHistory.length === 0) { infoBox.innerHTML = "ℹ️ Pierwszy trening z tym ćwiczeniem!"; return; }
-            const lastDate = exerciseHistory[exerciseHistory.length - 1].date;
-            const lastSessionSets = exerciseHistory.filter(set => set.date === lastDate);
-            let html = `<strong>Ostatnio (${lastDate}):</strong><br>`;
+            const date = exerciseHistory[exerciseHistory.length - 1].date;
+            const lastSessionSets = exerciseHistory.filter(set => set.date === date);
+            let html = `<strong>Ostatnio (${date}):</strong><br>`;
             lastSessionSets.forEach((set, index) => { html += `S${index + 1}: ${set.reps} x ${set.weight}kg<br>`; });
             infoBox.innerHTML = html;
         }
