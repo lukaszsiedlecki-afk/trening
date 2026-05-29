@@ -27,7 +27,7 @@
         .last-session { background: #fff9db; border-left: 4px solid #f59f00; padding: 12px; margin-bottom: 15px; font-size: 14px; border-radius: 0 6px 6px 0; }
         .summary-box { background: #e8f8f5; border-left: 4px solid #2cc9a8; padding: 10px; margin-bottom: 5px; font-size: 14px; border-radius: 0 6px 6px 0; }
 
-        /* POPRAWKA: Mniejszy blok "Dzisiejsze serie" */
+        /* Mniejszy blok "Dzisiejsze serie" */
         .compact-card { padding: 10px; margin-bottom: 10px; }
         .compact-card h2 { font-size: 16px; margin-bottom: 8px; }
         .compact-row { padding: 6px 8px; font-size: 13px; margin-top: 4px; }
@@ -51,10 +51,11 @@
         .app-page { display: none; }
         .app-page.active { display: block; }
 
-        /* TRYB CIEMNY */
-        body.dark-mode { background: #121212; color: #e0e0e0; }
+        /* MODYFIKACJA: ULEPSZONY TRYB CIEMNY */
+        body.dark-mode { background: #121212; color: #e0e0e0; color-scheme: dark; } /* color-scheme wymusza ciemne menu systemowe */
+        body.dark-mode option { background: #1e1e1e; color: #fff; } /* Kolor tła dla pojedynczych opcji */
         body.dark-mode .card { background: #1e1e1e; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
-        body.dark-mode h2 { color: #a3e2d4; }
+        body.dark-mode h2 { color: #2cc9a8; }
         body.dark-mode select, body.dark-mode input { background: #2d2d2d; color: #fff; border: 1px solid #444; }
         body.dark-mode .flex-row { background: #2d2d2d; color: #fff; }
         body.dark-mode .last-session { background: #332b00; border-left-color: #ffd43b; color: #ffe066; }
@@ -200,7 +201,6 @@
         function saveExercises() { localStorage.setItem('exercises', JSON.stringify(exercises)); }
         function saveDataLog() { localStorage.setItem('dataLog', JSON.stringify(dataLog)); }
 
-        // POPRAWKA: Format zapisu ostatniej sesji (Reps x Weight)
         function updateLastSessionView() {
             const selectedExercise = document.getElementById('exerciseSelect').value;
             const infoBox = document.getElementById('lastSessionInfo');
@@ -244,7 +244,6 @@
             }
         }
 
-        // POPRAWKA: Kompaktowy widok dzisiejszych serii oraz format (Reps x Weight)
         function renderTodaySets() {
             const container = document.getElementById('todaySetsList');
             if(!container) return;
@@ -263,7 +262,6 @@
             });
         }
 
-        // POPRAWKA: Rozwijana historia dni treningowych
         function renderHistory() {
             const container = document.getElementById('historyContainer');
             if(!container) return;
@@ -292,9 +290,8 @@
                 const dayCard = document.createElement('div');
                 dayCard.className = 'card clickable-card';
                 
-                // Obsługa kliknięcia (rozwijanie / zwijanie)
                 dayCard.onclick = function(e) {
-                    if (e.target.classList.contains('delete-btn')) return; // ignoruj jeśli kliknięto usuń
+                    if (e.target.classList.contains('delete-btn')) return;
                     const content = this.querySelector('.collapse-content');
                     const arrow = this.querySelector('.arrow-indicator');
                     if (content.style.display === 'block') {
@@ -318,7 +315,6 @@
                     <div class="collapse-content">
                 `;
                 
-                // Dodajemy wykonane serie do ukrytego kontenera
                 sets.forEach(set => {
                     html += `
                         <div class="flex-row" style="font-size:14px; background:#fdfefe; border: 1px solid #eef2f3;">
@@ -328,7 +324,7 @@
                     `;
                 });
                 
-                html += `</div>`; // zamknięcie collapse-content
+                html += `</div>`;
                 
                 dayCard.innerHTML = html;
                 container.appendChild(dayCard);
