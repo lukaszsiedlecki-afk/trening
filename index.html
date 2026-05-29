@@ -43,6 +43,9 @@
         .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .theme-toggle-btn { width: auto; margin: 0; padding: 8px 12px; font-size: 14px; background: #7f8c8d; }
 
+        /* MODYFIKACJA v7: Znacznik wersji na dole strony */
+        .version-tag { font-size: 11px; color: #7f8c8d; text-align: center; margin-top: 15px; opacity: 0.7; }
+
         /* Dolne Menu */
         .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; }
         .nav-item { flex: 1; text-align: center; padding: 15px 0; font-weight: bold; color: #7f8c8d; cursor: pointer; font-size: 14px; }
@@ -51,39 +54,12 @@
         .app-page { display: none; }
         .app-page.active { display: block; }
 
-        /* MODYFIKACJA v6: BARDZIEJ AGRESYWNY TRYB CIEMNY DLA SELECTÓW */
-        body.dark-mode { 
-            background: #121212; 
-            color: #e0e0e0; 
-            /*color-scheme: dark; <- USUŃ JĄ, jeśli była. To ona nam psuje Portrait mode */
-        } 
-        
-        /* Agresywne, manualne stylowanie zamkniętego pola select */
-        body.dark-mode select, body.dark-mode input { 
-            background: #1a1a1a; 
-            color: #fff; 
-            border: 1px solid #444; 
-            appearance: none; 
-            -webkit-appearance: none; 
-        }
-        
-        /* Stylowanie otwartego dropdownu */
-        body.dark-mode select option { 
-            background: #1e1e1e; 
-            color: #fff; 
-        }
-
-        /* Upewniamy się, że polom wprowadzania w dropdownach też narzucamy ciemność */
-        body.dark-mode .flex-row select,
-        body.dark-mode .flex-row input {
-            background: #1a1a1a;
-            color: #fff;
-            border: 1px solid #444;
-        }
-
+        /* TRYB CIEMNY */
+        body.dark-mode { background: #121212; color: #e0e0e0; } 
+        body.dark-mode select, body.dark-mode input { background: #2d2d2d; color: #fff; border: 1px solid #444; }
+        body.dark-mode select option { background: #1e1e1e; color: #fff; }
         body.dark-mode .card { background: #1e1e1e; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
         body.dark-mode h2 { color: #2cc9a8; }
-        body.dark-mode select, body.dark-mode input { background: #2d2d2d; color: #fff; border: 1px solid #444; }
         body.dark-mode .flex-row { background: #2d2d2d; color: #fff; }
         body.dark-mode .last-session { background: #332b00; border-left-color: #ffd43b; color: #ffe066; }
         body.dark-mode .summary-box { background: #002b22; border-left-color: #2cc9a8; color: #a3e2d4; }
@@ -120,6 +96,8 @@
             <h2>Dzisiejsze serie</h2>
             <div id="todaySetsList"></div>
         </div>
+
+        <div class="version-tag">Wersja: v7</div>
     </div>
 
     <div id="page-history" class="app-page">
@@ -163,6 +141,7 @@
             isDarkMode = !isDarkMode;
             localStorage.setItem('darkMode', isDarkMode);
             applyTheme();
+            renderHistory(); // Odśwież historię przy zmianie motywu, aby kolory dobrze wskoczyły
         }
 
         function applyTheme() {
@@ -342,9 +321,10 @@
                     <div class="collapse-content">
                 `;
                 
+                // MODYFIKACJA v7: Usunąłem stąd "background:#fdfefe;". Teraz tło sterowane jest przez klasę CSS flex-row i działa w trybie ciemnym!
                 sets.forEach(set => {
                     html += `
-                        <div class="flex-row" style="font-size:14px; background:#fdfefe; border: 1px solid #eef2f3;">
+                        <div class="flex-row" style="font-size:14px; border: 1px solid #eef2f3;">
                             <span><strong>${set.exercise}</strong>: ${set.reps} x ${set.weight}kg</span>
                             <button class="delete-btn" onclick="deleteSet(${set.id})">Usuń</button>
                         </div>
