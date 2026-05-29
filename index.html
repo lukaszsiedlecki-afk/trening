@@ -17,7 +17,7 @@
         
         button { background: #27ae60; color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
         button:hover { background: #219653; }
-        .accent-btn { background: #2980b9; }
+        .accent-btn { background: #2980b9; color: white; }
         .accent-btn:hover { background: #2471a3; }
         
         .delete-btn { background: #e74c3c; padding: 6px 10px; width: auto; font-size: 14px; margin: 0; border-radius: 4px; color: white; }
@@ -42,8 +42,6 @@
         /* Nagłówek strony */
         .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .theme-toggle-btn { width: auto; margin: 0; padding: 8px 12px; font-size: 14px; background: #7f8c8d; }
-
-        /* MODYFIKACJA v7: Znacznik wersji na dole strony */
         .version-tag { font-size: 11px; color: #7f8c8d; text-align: center; margin-top: 15px; opacity: 0.7; }
 
         /* Dolne Menu */
@@ -78,8 +76,12 @@
     <div id="page-workout" class="app-page active">
         <div class="card">
             <h2>Zapisz Serię</h2>
+            
+            <label for="categorySelect">Wybierz partię ciała:</label>
+            <select id="categorySelect" onchange="updateExerciseDropdown()"></select>
+
             <label for="exerciseSelect">Wybierz ćwiczenie:</label>
-            <select id="exerciseSelect" onchange="updateLastSessionView()"></select>
+            <select id="exerciseSelect" onchange="onExerciseChange()"></select>
             
             <div id="lastSessionInfo" class="last-session">Brak historii.</div>
             
@@ -97,7 +99,7 @@
             <div id="todaySetsList"></div>
         </div>
 
-        <div class="version-tag">Wersja: v7</div>
+        <div class="version-tag">Wersja: v8</div>
     </div>
 
     <div id="page-history" class="app-page">
@@ -108,6 +110,10 @@
         <div class="card">
             <h2>Dodaj nowe ćwiczenie</h2>
             <input type="text" id="newExerciseName" placeholder="np. Podciąganie na drążku">
+            
+            <label for="newExerciseCategory">Partia ciała:</label>
+            <select id="newExerciseCategory"></select>
+            
             <button class="accent-btn" onclick="addExercise()">Dodaj do listy</button>
         </div>
 
@@ -124,14 +130,36 @@
     </div>
 
     <script>
-        let exercises = JSON.parse(localStorage.getItem('exercises')) || ["Wyciskanie na płaskiej", "Martwy ciąg", "Przysiad ze sztangą"];
+        // Definicja stałych partii ciała
+        const categories = ["Klatka", "Plecy", "Biceps", "Triceps", "Nogi", "Brzuch"];
+
+        // Domyślna baza z podziałem na kategorie
+        const defaultExercises = [
+            { name: "Wyciskanie na płaskiej", category: "Klatka" },
+            { name: "Martwy ciąg", category: "Plecy" },
+            { name: "Przysiad ze sztangą", category: "Nogi" }
+        ];
+
+        let exercises = JSON.parse(localStorage.getItem('exercises')) || defaultExercises;
         let dataLog = JSON.parse(localStorage.getItem('dataLog')) || [];
         let isDarkMode = localStorage.getItem('darkMode') === 'true';
 
+        // Konwersja starej bazy tekstowej na obiektową (zabezpieczenie danych użytkownika)
+        if (exercises.length > 0 && typeof exercises[0] === 'string') {
+            exercises = exercises.map(ex => {
+                let assignedCat = "Klatka"; // domyślny bezpieczny strzał
+                if (ex.includes("Martwy") || ex.includes("Plecy") || ex.includes("Wiosłowanie")) assignedCat = "Plecy";
+                if (ex.includes("Przysiad") || ex.includes("Nogi") || ex.includes("Łydki")) assignedCat = "Nogi";
+                if (ex.includes("Brzuch") || ex.includes("Allahy")) assignedCat = "Brzuch";
+                return { name: ex, category: assignedCat };
+            });
+            localStorage.setItem('exercises', JSON.stringify(exercises));
+        }
+
         function init() {
             applyTheme();
-            updateExerciseDropdown();
-            updateLastSessionView();
+            updateCategoryDropdowns(); // Zbuduj listy partii ciała
+            updateExerciseDropdown();  // Zbuduj listę ćwiczeń dla pierwszej partii
             renderTodaySets();
             renderCustomExercisesList();
             renderHistory();
@@ -141,7 +169,7 @@
             isDarkMode = !isDarkMode;
             localStorage.setItem('darkMode', isDarkMode);
             applyTheme();
-            renderHistory(); // Odśwież historię przy zmianie motywu, aby kolory dobrze wskoczyły
+            renderHistory();
         }
 
         function applyTheme() {
@@ -158,34 +186,98 @@
             document.getElementById(`nav-${pageId}`).classList.add('active');
             document.getElementById('app-title').textContent = titleText;
             if(pageId === 'history') renderHistory();
-            if(pageId === 'workout') { renderTodaySets(); updateLastSessionView(); }
+            if(pageId === 'workout') { renderTodaySets(); onExerciseChange(); }
         }
 
+        // Generowanie list rozwijanych dla partii ciała
+        function updateCategoryDropdowns() {
+            const catSelect = document.getElementById('categorySelect');
+            const newCatSelect = document.getElementById('newExerciseCategory');
+            
+            if(catSelect) {
+                catSelect.innerHTML = '';
+                categories.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat; option.textContent = cat;
+                    catSelect.appendChild(option);
+                });
+            }
+            if(newCatSelect) {
+                newCatSelect.innerHTML = '';
+                categories.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat; option.textContent = cat;
+                    newCatSelect.appendChild(option);
+                });
+            }
+        }
+
+        // Filtrowanie ćwiczeń na podstawie wybranej partii
         function updateExerciseDropdown() {
+            const selectedCat = document.getElementById('categorySelect').value;
             const select = document.getElementById('exerciseSelect');
             if(!select) return;
             select.innerHTML = '';
-            exercises.forEach(ex => {
+            
+            const filteredExercises = exercises.filter(ex => ex.category === selectedCat);
+            
+            filteredExercises.forEach(ex => {
                 const option = document.createElement('option');
-                option.value = ex;
-                option.textContent = ex;
+                option.value = ex.name;
+                option.textContent = ex.name;
                 select.appendChild(option);
             });
+            onExerciseChange(); // Odpal aktualizację historii i autouzupełnianie
+        }
+
+        // Zbiorcza funkcja reakcji na zmianę ćwiczenia
+        function onExerciseChange() {
+            updateLastSessionView();
+            autoFillInputs();
+        }
+
+        // POPRAWKA v8: Inteligentne autouzupełnianie pól na bazie ostatniej serii
+        function autoFillInputs() {
+            const selectedExercise = document.getElementById('exerciseSelect').value;
+            if (!selectedExercise) {
+                document.getElementById('repsInput').value = '';
+                document.getElementById('weightInput').value = '';
+                return;
+            }
+            
+            const exerciseHistory = dataLog.filter(set => set.exercise === selectedExercise);
+            if (exerciseHistory.length > 0) {
+                // Wyciągamy absolutnie ostatni wpisany zestaw dla tego ćwiczenia
+                const lastSet = exerciseHistory[exerciseHistory.length - 1];
+                document.getElementById('repsInput').value = lastSet.reps;
+                document.getElementById('weightInput').value = lastSet.weight;
+            } else {
+                // Jeśli nigdy nie ćwiczyliśmy – czyścimy pola
+                document.getElementById('repsInput').value = '';
+                document.getElementById('weightInput').value = '';
+            }
         }
 
         function addExercise() {
             const input = document.getElementById('newExerciseName');
+            const category = document.getElementById('newExerciseCategory').value;
             const name = input.value.trim();
-            if (name && !exercises.includes(name)) {
-                exercises.push(name);
+            
+            // Sprawdzenie czy ćwiczenie już istnieje w bazie
+            const exists = exercises.some(ex => ex.name.toLowerCase() === name.toLowerCase());
+
+            if (name && !exists) {
+                exercises.push({ name: name, category: category });
                 saveExercises();
                 input.value = '';
                 init();
+            } else if (exists) {
+                alert("To ćwiczenie już znajduje się na Twojej liście!");
             }
         }
 
         function deleteExercise(index) {
-            if(confirm(`Czy na pewno chcesz usunąć ćwiczenie: "${exercises[index]}"?`)) {
+            if(confirm(`Czy na pewno chcesz usunąć ćwiczenie: "${exercises[index].name}"?`)) {
                 exercises.splice(index, 1);
                 saveExercises();
                 init();
@@ -199,7 +291,8 @@
             exercises.forEach((ex, index) => {
                 const div = document.createElement('div');
                 div.className = 'flex-row';
-                div.innerHTML = `<span>${ex}</span> <button class="delete-btn" onclick="deleteExercise(${index})">Usuń</button>`;
+                div.innerHTML = `<span><strong>${ex.name}</strong> <small style="color:#7f8c8d;">(${ex.category})</small></span> 
+                                 <button class="delete-btn" onclick="deleteExercise(${index})">Usuń</button>`;
                 container.appendChild(div);
             });
         }
@@ -236,8 +329,7 @@
             
             renderTodaySets();
             updateLastSessionView();
-            document.getElementById('weightInput').value = '';
-            document.getElementById('repsInput').value = '';
+            // Zostawiamy wartości zamiast czyścić formularz – ułatwia to wbijanie kolejnych identycznych serii!
         }
 
         function deleteSet(setId) {
@@ -246,7 +338,7 @@
                 saveDataLog();
                 renderTodaySets();
                 renderHistory();
-                updateLastSessionView();
+                onExerciseChange();
             }
         }
 
@@ -321,7 +413,6 @@
                     <div class="collapse-content">
                 `;
                 
-                // MODYFIKACJA v7: Usunąłem stąd "background:#fdfefe;". Teraz tło sterowane jest przez klasę CSS flex-row i działa w trybie ciemnym!
                 sets.forEach(set => {
                     html += `
                         <div class="flex-row" style="font-size:14px; border: 1px solid #eef2f3;">
