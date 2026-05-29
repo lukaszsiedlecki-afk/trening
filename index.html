@@ -27,7 +27,6 @@
         .last-session { background: #fff9db; border-left: 4px solid #f59f00; padding: 12px; margin-bottom: 15px; font-size: 14px; border-radius: 0 6px 6px 0; }
         .summary-box { background: #e8f8f5; border-left: 4px solid #2cc9a8; padding: 10px; margin-bottom: 5px; font-size: 14px; border-radius: 0 6px 6px 0; }
 
-        /* Mniejszy blok "Dzisiejsze serie" */
         .compact-card { padding: 10px; margin-bottom: 10px; }
         .compact-card h2 { font-size: 16px; margin-bottom: 8px; }
         .compact-row { padding: 6px 8px; font-size: 13px; margin-top: 4px; }
@@ -42,7 +41,10 @@
         /* Nagłówek strony */
         .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .theme-toggle-btn { width: auto; margin: 0; padding: 8px 12px; font-size: 14px; background: #7f8c8d; }
+        
+        /* Stopka z wersją i przyciskiem nuklearnym */
         .version-tag { font-size: 11px; color: #7f8c8d; text-align: center; margin-top: 15px; opacity: 0.7; }
+        .nuclear-link { color: #e74c3c; cursor: pointer; text-decoration: underline; margin-left: 10px; font-weight: bold; }
 
         /* Dolne Menu */
         .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; }
@@ -76,7 +78,6 @@
     <div id="page-workout" class="app-page active">
         <div class="card">
             <h2>Zapisz Serię</h2>
-            
             <label for="categorySelect">Wybierz partię ciała:</label>
             <select id="categorySelect" onchange="updateExerciseDropdown()"></select>
 
@@ -99,7 +100,9 @@
             <div id="todaySetsList"></div>
         </div>
 
-        <div class="version-tag">Wersja: v8</div>
+        <div class="version-tag">
+            Wersja: v9 | <span class="nuclear-link" onclick="forceNuclearReset()">[Wymuś Reset Apki]</span>
+        </div>
     </div>
 
     <div id="page-history" class="app-page">
@@ -110,10 +113,8 @@
         <div class="card">
             <h2>Dodaj nowe ćwiczenie</h2>
             <input type="text" id="newExerciseName" placeholder="np. Podciąganie na drążku">
-            
             <label for="newExerciseCategory">Partia ciała:</label>
             <select id="newExerciseCategory"></select>
-            
             <button class="accent-btn" onclick="addExercise()">Dodaj do listy</button>
         </div>
 
@@ -130,10 +131,7 @@
     </div>
 
     <script>
-        // Definicja stałych partii ciała
         const categories = ["Klatka", "Plecy", "Biceps", "Triceps", "Nogi", "Brzuch"];
-
-        // Domyślna baza z podziałem na kategorie
         const defaultExercises = [
             { name: "Wyciskanie na płaskiej", category: "Klatka" },
             { name: "Martwy ciąg", category: "Plecy" },
@@ -144,10 +142,9 @@
         let dataLog = JSON.parse(localStorage.getItem('dataLog')) || [];
         let isDarkMode = localStorage.getItem('darkMode') === 'true';
 
-        // Konwersja starej bazy tekstowej na obiektową (zabezpieczenie danych użytkownika)
         if (exercises.length > 0 && typeof exercises[0] === 'string') {
             exercises = exercises.map(ex => {
-                let assignedCat = "Klatka"; // domyślny bezpieczny strzał
+                let assignedCat = "Klatka";
                 if (ex.includes("Martwy") || ex.includes("Plecy") || ex.includes("Wiosłowanie")) assignedCat = "Plecy";
                 if (ex.includes("Przysiad") || ex.includes("Nogi") || ex.includes("Łydki")) assignedCat = "Nogi";
                 if (ex.includes("Brzuch") || ex.includes("Allahy")) assignedCat = "Brzuch";
@@ -158,11 +155,34 @@
 
         function init() {
             applyTheme();
-            updateCategoryDropdowns(); // Zbuduj listy partii ciała
-            updateExerciseDropdown();  // Zbuduj listę ćwiczeń dla pierwszej partii
+            updateCategoryDropdowns();
+            updateExerciseDropdown();
             renderTodaySets();
             renderCustomExercisesList();
             renderHistory();
+        }
+
+        // KOD NUKLEARNY v9: Czyści cache, unieważnia service workery i resetuje pamięć
+        function forceNuclearReset() {
+            if (confirm("Ta operacja usunie stare pliki z pamięci telefonu, zresetuje bazę danych i pobierze najnowszą wersję v9 z sieci. Kontynuować?")) {
+                // 1. Wyrejestrowanie Service Workerów
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(registrations => {
+                        for(let registration of registrations) { registration.unregister(); }
+                    });
+                }
+                // 2. Czyszczenie Cache Storage plików
+                if ('caches' in window) {
+                    caches.keys().then(names => {
+                        for (let name of names) caches.delete(name);
+                    });
+                }
+                // 3. Czyszczenie bazy treningów
+                localStorage.clear();
+                
+                alert("Czyszczenie zakończone! Strona zostanie przeładowana, aby pobrać czyste v9.");
+                window.location.reload(true);
+            }
         }
 
         function toggleTheme() {
@@ -189,11 +209,9 @@
             if(pageId === 'workout') { renderTodaySets(); onExerciseChange(); }
         }
 
-        // Generowanie list rozwijanych dla partii ciała
         function updateCategoryDropdowns() {
             const catSelect = document.getElementById('categorySelect');
             const newCatSelect = document.getElementById('newExerciseCategory');
-            
             if(catSelect) {
                 catSelect.innerHTML = '';
                 categories.forEach(cat => {
@@ -212,31 +230,25 @@
             }
         }
 
-        // Filtrowanie ćwiczeń na podstawie wybranej partii
         function updateExerciseDropdown() {
             const selectedCat = document.getElementById('categorySelect').value;
             const select = document.getElementById('exerciseSelect');
             if(!select) return;
             select.innerHTML = '';
-            
             const filteredExercises = exercises.filter(ex => ex.category === selectedCat);
-            
             filteredExercises.forEach(ex => {
                 const option = document.createElement('option');
-                option.value = ex.name;
-                option.textContent = ex.name;
+                option.value = ex.name; option.textContent = ex.name;
                 select.appendChild(option);
             });
-            onExerciseChange(); // Odpal aktualizację historii i autouzupełnianie
+            onExerciseChange();
         }
 
-        // Zbiorcza funkcja reakcji na zmianę ćwiczenia
         function onExerciseChange() {
             updateLastSessionView();
             autoFillInputs();
         }
 
-        // POPRAWKA v8: Inteligentne autouzupełnianie pól na bazie ostatniej serii
         function autoFillInputs() {
             const selectedExercise = document.getElementById('exerciseSelect').value;
             if (!selectedExercise) {
@@ -244,15 +256,12 @@
                 document.getElementById('weightInput').value = '';
                 return;
             }
-            
             const exerciseHistory = dataLog.filter(set => set.exercise === selectedExercise);
             if (exerciseHistory.length > 0) {
-                // Wyciągamy absolutnie ostatni wpisany zestaw dla tego ćwiczenia
                 const lastSet = exerciseHistory[exerciseHistory.length - 1];
                 document.getElementById('repsInput').value = lastSet.reps;
                 document.getElementById('weightInput').value = lastSet.weight;
             } else {
-                // Jeśli nigdy nie ćwiczyliśmy – czyścimy pola
                 document.getElementById('repsInput').value = '';
                 document.getElementById('weightInput').value = '';
             }
@@ -262,18 +271,13 @@
             const input = document.getElementById('newExerciseName');
             const category = document.getElementById('newExerciseCategory').value;
             const name = input.value.trim();
-            
-            // Sprawdzenie czy ćwiczenie już istnieje w bazie
             const exists = exercises.some(ex => ex.name.toLowerCase() === name.toLowerCase());
-
             if (name && !exists) {
                 exercises.push({ name: name, category: category });
                 saveExercises();
                 input.value = '';
                 init();
-            } else if (exists) {
-                alert("To ćwiczenie już znajduje się na Twojej liście!");
-            }
+            } else if (exists) { alert("To ćwiczenie już istnieje!"); }
         }
 
         function deleteExercise(index) {
@@ -304,13 +308,10 @@
             const selectedExercise = document.getElementById('exerciseSelect').value;
             const infoBox = document.getElementById('lastSessionInfo');
             if (!selectedExercise) { infoBox.innerHTML = "Wybierz lub dodaj ćwiczenie."; return; }
-            
             const exerciseHistory = dataLog.filter(set => set.exercise === selectedExercise);
             if (exerciseHistory.length === 0) { infoBox.innerHTML = "ℹ️ Pierwszy trening z tym ćwiczeniem!"; return; }
-            
             const lastDate = exerciseHistory[exerciseHistory.length - 1].date;
             const lastSessionSets = exerciseHistory.filter(set => set.date === lastDate);
-            
             let html = `<strong>Ostatnio (${lastDate}):</strong><br>`;
             lastSessionSets.forEach((set, index) => { html += `S${index + 1}: ${set.reps} x ${set.weight}kg<br>`; });
             infoBox.innerHTML = html;
@@ -321,15 +322,11 @@
             const weight = parseFloat(document.getElementById('weightInput').value);
             const reps = parseInt(document.getElementById('repsInput').value);
             const today = new Date().toLocaleDateString('pl-PL');
-            
-            if (!exercise || isNaN(weight) || isNaN(reps)) { alert("Wpisz poprawne dane!"); return; }
-            
+            if (!exercise || isNaN(weight) || isNaN(reps)) { alert("Wpisz profesjonalne dane!"); return; }
             dataLog.push({ id: Date.now(), exercise, weight, reps, date: today });
             saveDataLog();
-            
             renderTodaySets();
             updateLastSessionView();
-            // Zostawiamy wartości zamiast czyścić formularz – ułatwia to wbijanie kolejnych identycznych serii!
         }
 
         function deleteSet(setId) {
@@ -348,9 +345,7 @@
             container.innerHTML = '';
             const today = new Date().toLocaleDateString('pl-PL');
             const todaySets = dataLog.filter(set => set.date === today);
-            
             if (todaySets.length === 0) { container.innerHTML = "<p style='color:gray; font-size:13px;'>Brak serii z dzisiaj.</p>"; return; }
-            
             todaySets.forEach(set => {
                 const div = document.createElement('div');
                 div.className = 'flex-row compact-row';
@@ -364,43 +359,31 @@
             const container = document.getElementById('historyContainer');
             if(!container) return;
             container.innerHTML = '';
-            
             if(dataLog.length === 0) { container.innerHTML = "<div class='card'><p style='color:gray;'>Twoja historia jest jeszcze pusta.</p></div>"; return; }
-            
             const groupedByDate = {};
             dataLog.forEach(set => {
                 if(!groupedByDate[set.date]) groupedByDate[set.date] = [];
                 groupedByDate[set.date].push(set);
             });
-            
             const sortedDates = Object.keys(groupedByDate).sort((a,b) => {
                 const partsA = a.split('.').reverse().join('');
                 const partsB = b.split('.').reverse().join('');
                 return partsB.localeCompare(partsA);
             });
-
             sortedDates.forEach(date => {
                 const sets = groupedByDate[date];
                 const uniqueExercises = [...new Set(sets.map(s => s.exercise))].length;
                 const totalReps = sets.reduce((sum, s) => sum + s.reps, 0);
                 const totalVolume = sets.reduce((sum, s) => sum + (s.weight * s.reps), 0);
-
                 const dayCard = document.createElement('div');
                 dayCard.className = 'card clickable-card';
-                
                 dayCard.onclick = function(e) {
                     if (e.target.classList.contains('delete-btn')) return;
                     const content = this.querySelector('.collapse-content');
                     const arrow = this.querySelector('.arrow-indicator');
-                    if (content.style.display === 'block') {
-                        content.style.display = 'none';
-                        arrow.textContent = '🔽';
-                    } else {
-                        content.style.display = 'block';
-                        arrow.textContent = '🔼';
-                    }
+                    if (content.style.display === 'block') { content.style.display = 'none'; arrow.textContent = '🔽'; } 
+                    else { content.style.display = 'block'; arrow.textContent = '🔼'; }
                 };
-                
                 let html = `
                     <div class="history-header">
                         <h2 style="color:#27ae60; margin:0;">📅 ${date}</h2>
@@ -412,7 +395,6 @@
                     </div>
                     <div class="collapse-content">
                 `;
-                
                 sets.forEach(set => {
                     html += `
                         <div class="flex-row" style="font-size:14px; border: 1px solid #eef2f3;">
@@ -421,9 +403,7 @@
                         </div>
                     `;
                 });
-                
                 html += `</div>`;
-                
                 dayCard.innerHTML = html;
                 container.appendChild(dayCard);
             });
