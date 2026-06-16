@@ -7,7 +7,6 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#27ae60">
     <style>
-        /* [SEKCJA CSS]: PRZYWRÓCONY KLASYCZNY STYL (JASNY/CIEMNY) */
         body { font-family: Arial, sans-serif; background: #f4f4f9; margin: 0; padding: 15px 15px 75px 15px; color: #333; transition: background 0.3s, color 0.3s; }
         .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; transition: background 0.3s; }
         h1 { margin: 0; font-size: 24px; }
@@ -35,20 +34,17 @@
         .compact-row { padding: 6px 8px; font-size: 13px; margin-top: 4px; }
         .compact-row .delete-btn { padding: 3px 6px; font-size: 12px; }
 
-        /* Rozwijana historia */
         .clickable-card { cursor: pointer; position: relative; }
         .history-header { display: flex; justify-content: space-between; align-items: center; }
         .collapse-content { display: none; margin-top: 10px; }
         .arrow-indicator { font-size: 14px; color: #7f8c8d; }
 
-        /* Nagłówek strony i przełącznik */
         .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .theme-toggle-btn { width: auto; margin: 0; padding: 8px 12px; font-size: 14px; background: #7f8c8d; }
         
         .version-tag { font-size: 11px; color: #7f8c8d; text-align: center; margin-top: 15px; opacity: 0.7; }
         .nuclear-link { color: #e74c3c; cursor: pointer; text-decoration: underline; margin-left: 10px; font-weight: bold; }
 
-        /* Dolne Menu */
         .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; }
         .nav-item { flex: 1; text-align: center; padding: 15px 0; font-weight: bold; color: #7f8c8d; cursor: pointer; font-size: 14px; }
         .nav-item.active { color: #27ae60; background: #f9f9f9; border-top: 3px solid #27ae60; }
@@ -56,7 +52,6 @@
         .app-page { display: none; }
         .app-page.active { display: block; }
 
-        /* TRYB CIEMNY */
         body.dark-mode { background: #121212; color: #e0e0e0; } 
         body.dark-mode select, body.dark-mode input { background: #2d2d2d; color: #fff; border: 1px solid #444; }
         body.dark-mode select option { background: #1e1e1e; color: #fff; }
@@ -77,6 +72,7 @@
         <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()">🌙 Ciemny</button>
     </div>
 
+    <!-- STRONA 1: TRENING -->
     <div id="page-workout" class="app-page active">
         <div class="card">
             <h2>Zapisz Serię</h2>
@@ -104,10 +100,11 @@
         </div>
 
         <div class="version-tag">
-            Wersja: v14 | <span class="nuclear-link" onclick="forceNuclearReset()">[Wymuś Reset Apki]</span>
+            Wersja: v15_FIX | <span class="nuclear-link" onclick="forceNuclearReset()">[Wymuś Reset Apki]</span>
         </div>
     </div>
 
+    <!-- STRONA 2: HISTORIA -->
     <div id="page-history" class="app-page">
         <div class="card">
             <h2>Kopia zapasowa danych</h2>
@@ -119,6 +116,7 @@
         <div id="historyContainer"></div>
     </div>
 
+    <!-- STRONA 3: USTAWIENIA -->
     <div id="page-exercises" class="app-page">
         <div class="card">
             <h2>Zarządzaj partiami ciała</h2>
@@ -141,6 +139,7 @@
         </div>
     </div>
 
+    <!-- DOLNE MENU -->
     <div class="nav-bar">
         <div id="nav-workout" class="nav-item active" onclick="switchPage('workout', '🏋️‍♂️ Trening')">💪 Trening</div>
         <div id="nav-history" class="nav-item" onclick="switchPage('history', '📅 Historia')">📅 Historia</div>
@@ -159,6 +158,18 @@
         let exercises = JSON.parse(localStorage.getItem('exercises')) || defaultExercises;
         let dataLog = JSON.parse(localStorage.getItem('dataLog')) || [];
         let isDarkMode = localStorage.getItem('darkMode') === 'true';
+
+        // NAPRAWA BAZY DANYCH (Przydzielenie brakujących ID starym wpisom z v7)
+        let needsSave = false;
+        dataLog = dataLog.map(set => {
+            if (!set.id) {
+                // Jeśli stara seria nie ma ID, tworzymy je w oparciu o czas i losowość
+                set.id = Date.now() + Math.floor(Math.random() * 10000);
+                needsSave = true;
+            }
+            return set;
+        });
+        if (needsSave) localStorage.setItem('dataLog', JSON.stringify(dataLog));
 
         if (exercises.length > 0 && typeof exercises[0] === 'string') {
             exercises = exercises.map(ex => {
@@ -301,7 +312,6 @@
             if (!selectedExercise) { infoBox.innerHTML = "Wybierz lub dodaj ćwiczenie."; return; }
             
             const today = new Date().toLocaleDateString('pl-PL');
-            // ZACHOWANA LOGIKA: ignorujemy dzisiejsze wpisy
             const exerciseHistory = dataLog.filter(set => set.exercise === selectedExercise && set.date !== today);
             
             if (exerciseHistory.length === 0) { infoBox.innerHTML = "ℹ️ Pierwszy trening z tym ćwiczeniem!"; return; }
@@ -376,9 +386,10 @@
             renderTodaySets();
         }
 
+        // NAPRAWA FUNKCJI USUWANIA: Bezpieczne porównywanie ID jako tekstu
         function deleteSet(setId) {
-            if(confirm("Usunąć tę serię?")) {
-                dataLog = dataLog.filter(set => set.id !== setId);
+            if(confirm("Czy na pewno usunąć tę serię?")) {
+                dataLog = dataLog.filter(set => String(set.id) !== String(setId));
                 saveDataLog();
                 renderTodaySets();
                 renderHistory();
@@ -396,12 +407,13 @@
             todaySets.forEach(set => {
                 const div = document.createElement('div');
                 div.className = 'flex-row compact-row';
-                div.innerHTML = `<span><strong>${set.exercise}</strong>: ${set.reps} x ${set.weight}kg</span> <button class="delete-btn" onclick="deleteSet(${set.id})">🗑️</button>`;
+                // Zwróć uwagę na ujęcie set.id w apostrofy: '${set.id}'
+                div.innerHTML = `<span><strong>${set.exercise}</strong>: ${set.reps} x ${set.weight}kg</span> <button class="delete-btn" onclick="deleteSet('${set.id}')">🗑️</button>`;
                 container.appendChild(div);
             });
         }
 
-        /* ZACHOWANA LOGIKA: Zaawansowane drzewo historii z hierarchią czcionek dostosowaną do klasycznego stylu */
+        // NAPRAWA ALGORYTMU SORTOWANIA DAT (Prawdziwe sortowanie chronologiczne)
         function renderHistory() {
             const container = document.getElementById('historyContainer');
             if(!container) return;
@@ -414,11 +426,16 @@
                 groupedByDate[set.date].push(set);
             });
             
-            // Sortowanie chronologiczne od najnowszych dni
+            // Konwersja tekstu (np. 5.12.2026) na prawdziwą datę matematyczną do poprawnego posortowania
             const sortedDates = Object.keys(groupedByDate).sort((a,b) => {
-                const partsA = a.split('.').reverse().join('');
-                const partsB = b.split('.').reverse().join('');
-                return partsB.localeCompare(partsA);
+                const parseDate = (dateStr) => {
+                    const parts = dateStr.split('.');
+                    if(parts.length === 3) {
+                        return new Date(parts[2], parts[1] - 1, parts[0]).getTime();
+                    }
+                    return 0;
+                };
+                return parseDate(b) - parseDate(a); // Sortowanie malejąco (najnowsze u góry)
             });
             
             sortedDates.forEach(date => {
@@ -427,7 +444,6 @@
                 const totalReps = sets.reduce((sum, s) => sum + s.reps, 0);
                 const totalVolume = sets.reduce((sum, s) => sum + (s.weight * s.reps), 0);
                 
-                // Grupowanie wewnętrzne: Partia -> Ćwiczenie
                 const categoriesObj = {};
                 sets.forEach(set => {
                     const foundEx = exercises.find(ex => ex.name === set.exercise);
@@ -459,21 +475,18 @@
                     <div class="collapse-content">
                 `;
                 
-                // Generowanie drzewa z zachowaniem wymaganej hierarchii czcionek (standard, -1, -2)
                 Object.keys(categoriesObj).forEach(cat => {
-                    // Partia ciała: standardowa wielkość czcionki w aplikacji (16px)
                     html += `<div style="font-size: 16px; font-weight: bold; color: #27ae60; margin-top: 12px;">${cat}:</div>`;
                     
                     Object.keys(categoriesObj[cat]).forEach(exName => {
-                        // Rodzaj ćwiczenia: standard -1 (15px), wcięcie 10px
                         html += `<div style="font-size: 15px; font-weight: bold; margin-left: 10px; margin-top: 6px;">${exName}:</div>`;
                         
                         categoriesObj[cat][exName].forEach((set, index) => {
-                            // Serie: standard -2 (14px), wcięcie 20px, klasyczny biały/szary flex-row
+                            // Zwróć uwagę na ujęcie set.id w apostrofy: '${set.id}'
                             html += `
                                 <div class="flex-row" style="font-size: 14px; padding: 6px 12px; margin-left: 20px; margin-top: 4px;">
                                     <span>Seria ${index + 1}: ${set.reps} x ${set.weight}kg</span>
-                                    <button class="delete-btn" onclick="deleteSet(${set.id})" style="font-size: 12px; padding: 3px 6px;">Usuń</button>
+                                    <button class="delete-btn" onclick="deleteSet('${set.id}')" style="font-size: 12px; padding: 3px 6px;">Usuń</button>
                                 </div>
                             `;
                         });
