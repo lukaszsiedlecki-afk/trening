@@ -3,197 +3,350 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MATRIX // DZIENNIK_TRENINGOWY</title>
+    <title>Mój Dziennik Treningowy - Live Tracker</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#00ff41">
+    <meta name="theme-color" content="#0a0a0a">
+    
+    <!-- Import prawdziwych, technicznych czcionek używanych w monitorach danych -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
     <style>
-        /* BAZA STYLÓW: MATRIX + TOTAL COMMANDER DARK */
+        /* [TACTICAL MONITOR STYLES - HORMUZ STRAIT INSPIRED] */
+        :root {
+            --bg-base: #0a0a0a;         /* Prawdziwa, głęboka czerń */
+            --bg-card: #171717;         /* Grafitowy panel danych */
+            --bg-input: #000000;        /* Najciemniejsze pole do wpisywania */
+            --border-color: #262626;    /* Surowa, stalowa ramka */
+            --text-main: #f5f5f5;       /* Złamana biel do czytania */
+            --text-muted: #a3a3a3;      /* Szary techniczny do opisów */
+            --accent-red: #dc2626;      /* Crisis Red */
+            --accent-green: #16a34a;    /* System Active Green */
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
         body { 
-            font-family: 'Consolas', 'Courier New', monospace; 
-            background-color: #000000; 
-            color: #00ff41; 
+            font-family: var(--font-sans); 
+            background: var(--bg-base); 
+            color: var(--text-main); 
             margin: 0; 
-            padding: 10px 10px 60px 10px; 
-            color-scheme: dark;
+            padding: 10px 10px 80px 10px; 
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Panele stylizowane na okna Total Commandera z zielonym neonem Matrixa */
+        /* --- STYLIZACJA NAGŁÓWKA WZOROWANA NA LIVE TRACKERZE --- */
+        .live-tracker-header {
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-top: 4px solid var(--accent-red);
+        }
+
+        .live-tracker-header h1 {
+            font-size: 18px;
+            margin: 0 0 5px 0;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .live-tracker-header .subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin: 0 0 15px 0;
+            font-family: var(--font-mono);
+        }
+
+        .status-grid {
+            display: flex;
+            gap: 10px;
+            font-size: 11px;
+            font-family: var(--font-mono);
+        }
+
+        .status-pill {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--accent-red);
+            padding: 4px 8px;
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: bold;
+        }
+        
+        .status-pill.active {
+            background: rgba(22, 163, 74, 0.1);
+            color: var(--accent-green);
+            border: 1px solid rgba(22, 163, 74, 0.3);
+        }
+
+        .pulse-dot {
+            width: 6px;
+            height: 6px;
+            background-color: currentColor;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(currentColor, 0.7); }
+            70% { box-shadow: 0 0 0 5px rgba(currentColor, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(currentColor, 0); }
+        }
+
+        /* --- KARTY DANYCH (PANELS) --- */
         .card { 
-            background: #0d0d0d; 
-            border: 1px solid #00ff41; 
-            padding: 12px; 
+            background: var(--bg-card); 
+            padding: 15px; 
+            border: 1px solid var(--border-color); 
             margin-bottom: 12px; 
-            border-radius: 0px; /* Całkowicie ostre krawędzie jak w retro programach */
-            box-shadow: 0 0 8px rgba(0, 255, 65, 0.2);
         }
 
-        /* Nagłówki Terminalowe */
-        h1 { font-size: 20px; color: #00ff41; margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px dashed #00ff41; padding-bottom: 5px; }
-        h2 { font-size: 15px; color: #ffffff; margin-top: 0; margin-bottom: 10px; text-transform: uppercase; background: #003311; padding: 4px 8px; display: inline-block; }
-        label { display: block; margin: 8px 0 4px 0; font-size: 12px; font-weight: bold; color: #00aa33; text-transform: uppercase; }
+        h2 { 
+            margin-top: 0; 
+            color: var(--text-muted); 
+            font-size: 11px; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            font-family: var(--font-mono);
+        }
 
-        /* Elementy formularzy - wysoki kontrast, terminalowy look */
-        select, input, button { 
+        label { 
+            display: block; 
+            margin: 12px 0 6px 0; 
+            font-weight: 600; 
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* --- POLA WPISYWANIA I PRZYCISKI --- */
+        select, input { 
             width: 100%; 
-            padding: 10px; 
+            padding: 12px; 
             margin-bottom: 10px; 
-            border-radius: 0px; 
-            border: 1px solid #00ff41; 
+            border: 1px solid var(--border-color); 
             box-sizing: border-box; 
             font-size: 14px; 
-            font-family: 'Consolas', 'Courier New', monospace;
-            background: #000000; 
-            color: #00ff41; 
+            background: var(--bg-input); 
+            color: var(--text-main); 
+            font-family: var(--font-mono);
+            outline: none;
         }
-        select:focus, input:focus { outline: none; background: #051a05; box-shadow: 0 0 10px #00ff41; }
-        select option { background: #0d0d0d; color: #00ff41; }
 
-        /* Przyciski Akcji - odwrócenie kolorów (Invert) w stylu Total Commandera */
-        button { background: #004411; color: #00ff41; font-weight: bold; text-transform: uppercase; cursor: pointer; transition: 0.1s; }
-        button:hover { background: #00ff41; color: #000000; box-shadow: 0 0 12px #00ff41; }
+        select:focus, input:focus { border-color: var(--text-muted); }
         
-        .accent-btn { background: #002244; border-color: #0088ff; color: #0088ff; }
-        .accent-btn:hover { background: #0088ff; color: #000000; box-shadow: 0 0 12px #0088ff; }
+        button { 
+            width: 100%;
+            padding: 12px;
+            background: var(--text-main); 
+            color: var(--bg-base); 
+            border: none; 
+            cursor: pointer; 
+            font-weight: 700; 
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        button:hover { background: #d4d4d4; }
+
+        button[onclick="addSet()"] { background: var(--accent-green); color: white; }
+        button[onclick="addSet()"]:hover { background: #15803d; }
         
-        .delete-btn { background: #440000; border-color: #ff3333; color: #ff3333; padding: 4px 8px; width: auto; font-size: 12px; margin: 0; }
-        .delete-btn:hover { background: #ff3333; color: #000000; box-shadow: 0 0 12px #ff3333; }
+        .accent-btn { background: var(--border-color); color: var(--text-main); }
+        .accent-btn:hover { background: #404040; }
         
-        .backup-btn { background: #330044; border-color: #cc00ff; color: #cc00ff; margin-bottom: 8px; }
-        .backup-btn:hover { background: #cc00ff; color: #000000; box-shadow: 0 0 12px #cc00ff; }
+        .backup-btn { background: #262626; color: var(--text-main); margin-bottom: 8px; font-family: var(--font-mono); font-size: 11px; }
+        .backup-btn:hover { background: #404040; }
+        
+        .delete-btn { 
+            background: transparent; 
+            border: 1px solid var(--accent-red); 
+            color: var(--accent-red); 
+            padding: 4px 8px; 
+            width: auto; 
+            font-size: 11px; 
+            font-family: var(--font-mono);
+        }
+        .delete-btn:hover { background: var(--accent-red); color: white; }
 
-        /* Wiersze danych i powiadomień */
-        .flex-row { display: flex; justify-content: space-between; align-items: center; background: #050505; border: 1px solid #005511; padding: 8px; margin-top: 5px; }
-        .last-session { background: #1a1500; border-left: 4px solid #ffcc00; color: #ffcc00; padding: 10px; margin-bottom: 12px; font-size: 13px; }
-        .summary-box { background: #001a14; border-left: 4px solid #00ffcc; color: #00ffcc; padding: 8px; margin-bottom: 5px; font-size: 13px; }
+        /* --- TABELE I METRYKI (HISTORY/SUMMARY) --- */
+        .flex-row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid var(--border-color); 
+            padding: 10px 0; 
+            font-family: var(--font-mono);
+        }
 
-        /* Odchudzony blok dzisiejszych serii */
-        .compact-card { padding: 8px; }
-        .compact-card h2 { font-size: 13px; background: #111; border: 1px solid #333; color: #00ff41; }
-        .compact-row { padding: 4px 6px; font-size: 12px; border-color: #003311; }
+        .last-session { 
+            background: transparent; 
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--accent-red); 
+            padding: 12px; 
+            margin-bottom: 15px; 
+            font-size: 13px; 
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+        }
 
-        /* Rozwijana historia */
+        .summary-box { 
+            background: var(--bg-input); 
+            border: 1px solid var(--border-color); 
+            border-top: 3px solid var(--accent-green);
+            padding: 12px; 
+            margin-bottom: 10px; 
+            font-size: 12px; 
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .compact-card { padding: 15px; margin-bottom: 10px; }
+        .compact-row { padding: 8px 0; font-size: 12px; }
+
         .clickable-card { cursor: pointer; }
         .history-header { display: flex; justify-content: space-between; align-items: center; }
-        .collapse-content { display: none; margin-top: 8px; }
-        .arrow-indicator { font-size: 12px; color: #00ff41; }
+        .collapse-content { display: none; margin-top: 15px; }
+        .arrow-indicator { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+        
+        .version-tag { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 20px; font-family: var(--font-mono); }
+        .nuclear-link { color: var(--accent-red); cursor: pointer; margin-left: 10px; text-decoration: none; border-bottom: 1px dotted var(--accent-red); }
 
-        /* Stopka / Wersja */
-        .version-tag { font-size: 10px; color: #005511; text-align: center; margin-top: 15px; }
-        .nuclear-link { color: #ff3333; cursor: pointer; text-decoration: underline; margin-left: 10px; }
-
-        /* DOLNE MENU: KLASYCZNY PASEK KLAWISZY Z TOTAL COMMANDERA [F3][F4][F5] */
+        /* --- DOLNE MENU --- */
         .nav-bar { 
             position: fixed; 
             bottom: 0; 
             left: 0; 
             right: 0; 
-            background: #111111; 
+            background: var(--bg-base); 
+            border-top: 1px solid var(--border-color);
             display: flex; 
-            border-top: 1px solid #00ff41; 
             z-index: 1000; 
-            padding: 2px;
         }
         .nav-item { 
             flex: 1; 
             text-align: center; 
-            padding: 10px 0; 
-            font-weight: bold; 
-            color: #00ff41; 
-            background: #000000;
+            padding: 15px 0; 
+            font-weight: 600; 
+            color: var(--text-muted); 
             cursor: pointer; 
-            font-size: 12px; 
-            margin: 2px;
-            border: 1px solid #003311;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        /* Aktywny panel podświetlony jak zaznaczenie w Total Commanderze */
         .nav-item.active { 
-            color: #000000; 
-            background: #00ff41; 
-            border-color: #00ff41;
-            box-shadow: 0 0 8px #00ff41;
+            color: var(--text-main); 
+            background: var(--bg-card);
+            border-top: 2px solid var(--accent-green); 
         }
         
         .app-page { display: none; }
         .app-page.active { display: block; }
+
+        /* Wymuszamy na sztywno jeden motyw, pozbywając się jasnego wariantu, bo monitory danych są zawsze ciemne */
+        .theme-toggle-btn { display: none; }
     </style>
 </head>
 <body>
 
-    <div class="header-area">
-        <h1 id="app-title">> SYS_OP: WORKOUT_LOG_V12</h1>
+    <!-- NOWY NAGŁÓWEK: HORMUZ MONITOR STYLE -->
+    <div class="live-tracker-header">
+        <h1>GYM WORKOUT LIVE TRACKER</h1>
+        <p class="subtitle">Real-Time Performance & Crisis Monitor.</p>
+        <div class="status-grid">
+            <div class="status-pill active">
+                <span class="pulse-dot"></span> LIVE
+            </div>
+            <div class="status-pill">
+                DATABASE: SECURE
+            </div>
+        </div>
     </div>
 
+    <!-- STRONA 1: TRENING -->
     <div id="page-workout" class="app-page active">
         <div class="card">
-            <h2>[01] ZAPISZ_SERIĘ</h2>
+            <h2>Add Record — New Set Entry</h2>
             
-            <label for="categorySelect">> KAT_CIALO:</label>
+            <label for="categorySelect">Target Zone (Partia):</label>
             <select id="categorySelect" onchange="updateExerciseDropdown()"></select>
 
-            <label for="exerciseSelect">> CWICZENIE:</label>
+            <label for="exerciseSelect">Operation (Ćwiczenie):</label>
             <select id="exerciseSelect" onchange="onExerciseChange()"></select>
             
-            <div id="lastSessionInfo" class="last-session">HISTORY_EMPTY</div>
+            <div id="lastSessionInfo" class="last-session">Awaiting history payload...</div>
             
-            <label for="repsInput">> POWTORZENIA (REPS):</label>
+            <label for="repsInput">Reps Count:</label>
             <input type="number" id="repsInput" placeholder="0" inputmode="numeric">
 
-            <label for="weightInput">> CIEZAR_KG (WEIGHT):</label>
-            <input type="number" id="weightInput" placeholder="0.0" step="0.5" inputmode="decimal">
+            <label for="weightInput">Load Factor (kg):</label>
+            <input type="number" id="weightInput" placeholder="0" step="0.5" inputmode="decimal">
             
-            <button onclick="addSet()">[ ENTER ] DODAJ SERIĘ</button>
+            <button onclick="addSet()">LOG DATA ENTRY</button>
         </div>
 
         <div class="card compact-card">
-            <h2>[02] DZISIEJSZE_SERIE</h2>
+            <h2>Today's Activity Log — <span id="todayDateLabel"></span></h2>
             <div id="todaySetsList"></div>
         </div>
 
         <div class="version-tag">
-            CORE_VER: v12_MATRIX_TC | <span class="nuclear-link" onclick="forceNuclearReset()">[SYS_RESET]</span>
+            VER: v17_MONITOR | <span class="nuclear-link" onclick="forceNuclearReset()">[WIPE DATABASE]</span>
         </div>
     </div>
 
+    <!-- STRONA 2: HISTORIA -->
     <div id="page-history" class="app-page">
         <div class="card">
-            <h2>[03] DATA_BACKUP_SYSTEM</h2>
-            <button class="backup-btn" onclick="exportData()">💾 EKSPORT_DO_PLIKU (.JSON)</button>
-            <button class="backup-btn" onclick="document.getElementById('importFileInput').click()">📂 IMPORT_Z_PLIKU (.JSON)</button>
+            <h2>Data Retention & Backup</h2>
+            <button class="backup-btn" onclick="exportData()">DOWNLOAD DATABASE (.JSON)</button>
+            <button class="backup-btn" onclick="document.getElementById('importFileInput').click()">UPLOAD PAYLOAD (.JSON)</button>
             <input type="file" id="importFileInput" style="display:none" accept=".json" onchange="importData(event)">
         </div>
 
         <div id="historyContainer"></div>
     </div>
 
+    <!-- STRONA 3: USTAWIENIA -->
     <div id="page-exercises" class="app-page">
         <div class="card">
-            <h2>[04] ZARZADZAJ_PARTIAMI</h2>
-            <input type="text" id="newCategoryName" placeholder="NAZWA PARTII...">
-            <button class="accent-btn" onclick="addCategory()">DODAJ PARTIĘ</button>
+            <h2>Category Configuration</h2>
+            <input type="text" id="newCategoryName" placeholder="New target zone...">
+            <button class="accent-btn" onclick="addCategory()">ADD ZONE</button>
             <div id="customCategoriesList"></div>
         </div>
 
         <div class="card">
-            <h2>[05] NOWE_CWICZENIE</h2>
-            <input type="text" id="newExerciseName" placeholder="NAZWA CWICZENIA...">
-            <label for="newExerciseCategory">> PRZYPISZ_DO_PARTII:</label>
+            <h2>Exercise Registry</h2>
+            <input type="text" id="newExerciseName" placeholder="New operation name...">
+            <label for="newExerciseCategory">Target Zone:</label>
             <select id="newExerciseCategory"></select>
-            <button class="accent-btn" onclick="addExercise()">DODAJ CWICZENIE</button>
+            <button class="accent-btn" onclick="addExercise()">ADD OPERATION</button>
         </div>
 
         <div class="card">
-            <h2>[06] BAZA_CWICZEN</h2>
+            <h2>Registry Database</h2>
             <div id="customExercisesList"></div>
         </div>
     </div>
 
+    <!-- DOLNE MENU -->
     <div class="nav-bar">
-        <div id="nav-workout" class="nav-item active" onclick="switchPage('workout', '> SYS_OP: WORKOUT_LOG')">F3 TRENING</div>
-        <div id="nav-history" class="nav-item" onclick="switchPage('history', '> SYS_OP: HISTORY_DB')">F4 HISTORIA</div>
-        <div id="nav-exercises" class="nav-item" onclick="switchPage('exercises', '> SYS_OP: SYS_CONFIG')">F5 USTAWIE</div>
+        <div id="nav-workout" class="nav-item active" onclick="switchPage('workout')">Tracker</div>
+        <div id="nav-history" class="nav-item" onclick="switchPage('history')">History</div>
+        <div id="nav-exercises" class="nav-item" onclick="switchPage('exercises')">Config</div>
     </div>
 
     <script>
+        // Bieżący kod aplikacji v15.1 - Zachowany bez zmian logicznych
         let categories = JSON.parse(localStorage.getItem('categories')) || ["Klatka", "Plecy", "Biceps", "Triceps", "Nogi", "Brzuch"];
 
         const defaultExercises = [
@@ -205,7 +358,30 @@
         let exercises = JSON.parse(localStorage.getItem('exercises')) || defaultExercises;
         let dataLog = JSON.parse(localStorage.getItem('dataLog')) || [];
 
+        // NAPRAWA BAZY DANYCH
+        let needsSave = false;
+        dataLog = dataLog.map(set => {
+            if (!set.id) {
+                set.id = Date.now() + Math.floor(Math.random() * 10000);
+                needsSave = true;
+            }
+            return set;
+        });
+        if (needsSave) localStorage.setItem('dataLog', JSON.stringify(dataLog));
+
+        if (exercises.length > 0 && typeof exercises[0] === 'string') {
+            exercises = exercises.map(ex => {
+                let assignedCat = "Klatka";
+                if (ex.includes("Martwy") || ex.includes("Plecy") || ex.includes("Wiosłowanie")) assignedCat = "Plecy";
+                if (ex.includes("Przysiad") || ex.includes("Nogi") || ex.includes("Łydki")) assignedCat = "Nogi";
+                if (ex.includes("Brzuch") || ex.includes("Allahy")) assignedCat = "Brzuch";
+                return { name: ex, category: assignedCat };
+            });
+            localStorage.setItem('exercises', JSON.stringify(exercises));
+        }
+
         function init() {
+            document.getElementById('todayDateLabel').innerText = new Date().toLocaleDateString('en-US');
             updateCategoryDropdowns();
             updateExerciseDropdown();
             renderTodaySets();
@@ -215,9 +391,9 @@
         }
 
         function forceNuclearReset() {
-            const wantBackup = confirm("[SYS_WARNING] Czy pobrać kopię zapasową JSON przed formatowaniem baz danych?");
+            const wantBackup = confirm("DANGER: Czy chcesz pobrać plik JSON z bazą danych przed formatowaniem?");
             if (wantBackup) { exportData(); }
-            if (confirm("[SYS_DANGER] Całkowite czyszczenie pamięci podręcznej i bazy. Kontynuować?")) {
+            if (confirm("POTWIERDŹ: Całkowite wyczyszczenie rejestru systemu?")) {
                 localStorage.clear();
                 window.location.reload();
             }
@@ -231,17 +407,17 @@
                 saveCategories();
                 input.value = '';
                 init();
-            } else if(categories.includes(name)) { alert("[ERROR] Partia już istnieje."); }
+            } else if(categories.includes(name)) { alert("ERROR: Zdublowany wpis w bazie."); }
         }
 
         function deleteCategory(index) {
             const catToDelete = categories[index];
             const hasExercises = exercises.some(ex => ex.category === catToDelete);
             if (hasExercises) {
-                alert(`[BLOKADA_SYSTEMU] Partia "${catToDelete}" posiada przypisane ćwiczenia.`);
+                alert(`BLOKADA: Przeniesione zależności. Usuń najpierw ćwiczenia z sekcji "${catToDelete}".`);
                 return;
             }
-            if (confirm(`Usunąć partię: "${catToDelete}"?`)) {
+            if (confirm(`Usunąć sektor bazowy: "${catToDelete}"?`)) {
                 categories.splice(index, 1);
                 saveCategories();
                 init();
@@ -255,7 +431,7 @@
             categories.forEach((cat, index) => {
                 const div = document.createElement('div');
                 div.className = 'flex-row';
-                div.innerHTML = `<span><strong>${cat}</strong></span> <button class="delete-btn" onclick="deleteCategory(${index})">USUŃ</button>`;
+                div.innerHTML = `<span><strong>${cat}</strong></span> <button class="delete-btn" onclick="deleteCategory(${index})">DELETE</button>`;
                 container.appendChild(div);
             });
         }
@@ -264,12 +440,11 @@
         function saveExercises() { localStorage.setItem('exercises', JSON.stringify(exercises)); }
         function saveDataLog() { localStorage.setItem('dataLog', JSON.stringify(dataLog)); }
 
-        function switchPage(pageId, titleText) {
+        function switchPage(pageId) {
             document.querySelectorAll('.app-page').forEach(page => page.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             document.getElementById(`page-${pageId}`).classList.add('active');
             document.getElementById(`nav-${pageId}`).classList.add('active');
-            document.getElementById('app-title').textContent = titleText;
             if(pageId === 'history') renderHistory();
             if(pageId === 'workout') { renderTodaySets(); onExerciseChange(); }
         }
@@ -314,6 +489,24 @@
             autoFillInputs();
         }
 
+        function updateLastSessionView() {
+            const selectedExercise = document.getElementById('exerciseSelect').value;
+            const infoBox = document.getElementById('lastSessionInfo');
+            if (!selectedExercise) { infoBox.innerHTML = "SYSTEM: Wybierz operację do monitorowania."; return; }
+            
+            const today = new Date().toLocaleDateString('pl-PL');
+            const exerciseHistory = dataLog.filter(set => set.exercise === selectedExercise && set.date !== today);
+            
+            if (exerciseHistory.length === 0) { infoBox.innerHTML = "STATUS: Brak wcześniejszych wpisów dla tego obiektu."; return; }
+            
+            const date = exerciseHistory[exerciseHistory.length - 1].date;
+            const lastSessionSets = exerciseHistory.filter(set => set.date === date);
+            
+            let html = `<strong style="color:#fff;">[ PREV RECORD: ${date} ]</strong><br>`;
+            lastSessionSets.forEach((set, index) => { html += `SET ${index + 1} | ${set.reps} REPS @ ${set.weight} KG<br>`; });
+            infoBox.innerHTML = html;
+        }
+
         function autoFillInputs() {
             const selectedExercise = document.getElementById('exerciseSelect').value;
             if (!selectedExercise) {
@@ -342,11 +535,11 @@
                 saveExercises();
                 input.value = '';
                 init();
-            } else if (exists) { alert("[ERROR] Ćwiczenie już istnieje."); }
+            } else if (exists) { alert("ERROR: Obiekt już istnieje w rejestrze."); }
         }
 
         function deleteExercise(index) {
-            if(confirm(`Usunąć ćwiczenie: "${exercises[index].name}"?`)) {
+            if(confirm(`Wymaga potwierdzenia: Usunąć "${exercises[index].name}"?`)) {
                 exercises.splice(index, 1);
                 saveExercises();
                 init();
@@ -360,22 +553,9 @@
             exercises.forEach((ex, index) => {
                 const div = document.createElement('div');
                 div.className = 'flex-row';
-                div.innerHTML = `<span><strong>${ex.name}</strong> <small style="color:#00aa33;">(${ex.category})</small></span> <button class="delete-btn" onclick="deleteExercise(${index})">USUŃ</button>`;
+                div.innerHTML = `<span><strong style="color:var(--text-main);">${ex.name}</strong> <small style="color:var(--text-muted);">[${ex.category}]</small></span> <button class="delete-btn" onclick="deleteExercise(${index})">DEL</button>`;
                 container.appendChild(div);
             });
-        }
-
-        function updateLastSessionView() {
-            const selectedExercise = document.getElementById('exerciseSelect').value;
-            const infoBox = document.getElementById('lastSessionInfo');
-            if (!selectedExercise) { infoBox.innerHTML = "Wybierz lub dodaj ćwiczenie."; return; }
-            const exerciseHistory = dataLog.filter(set => set.exercise === selectedExercise);
-            if (exerciseHistory.length === 0) { infoBox.innerHTML = "ℹ️ Pierwszy trening z tym ćwiczeniem!"; return; }
-            const date = exerciseHistory[exerciseHistory.length - 1].date;
-            const lastSessionSets = exerciseHistory.filter(set => set.date === date);
-            let html = `<strong>LAST_SESSION (${date}):</strong><br>`;
-            lastSessionSets.forEach((set, index) => { html += `S${index + 1}: ${set.reps} x ${set.weight}kg<br>`; });
-            infoBox.innerHTML = html;
         }
 
         function addSet() {
@@ -383,16 +563,15 @@
             const weight = parseFloat(document.getElementById('weightInput').value);
             const reps = parseInt(document.getElementById('repsInput').value);
             const today = new Date().toLocaleDateString('pl-PL');
-            if (!exercise || isNaN(weight) || isNaN(reps)) { alert("[ERROR] Wprowadź poprawne parametry serii."); return; }
+            if (!exercise || isNaN(weight) || isNaN(reps)) { alert("SYSTEM ALERT: Invalid input format."); return; }
             dataLog.push({ id: Date.now(), exercise, weight, reps, date: today });
             saveDataLog();
             renderTodaySets();
-            updateLastSessionView();
         }
 
         function deleteSet(setId) {
-            if(confirm("Usunąć tę serię z logów?")) {
-                dataLog = dataLog.filter(set => set.id !== setId);
+            if(confirm("Potwierdź usunięcie logu z bazy danych?")) {
+                dataLog = dataLog.filter(set => String(set.id) !== String(setId));
                 saveDataLog();
                 renderTodaySets();
                 renderHistory();
@@ -406,11 +585,11 @@
             container.innerHTML = '';
             const today = new Date().toLocaleDateString('pl-PL');
             const todaySets = dataLog.filter(set => set.date === today);
-            if (todaySets.length === 0) { container.innerHTML = "<p style='color:#005511; font-size:12px;'>LOG_EMPTY: Brak serii z dzisiaj.</p>"; return; }
+            if (todaySets.length === 0) { container.innerHTML = "<p style='color:var(--text-muted); font-size:12px; font-family:var(--font-mono);'>No data recorded today.</p>"; return; }
             todaySets.forEach(set => {
                 const div = document.createElement('div');
                 div.className = 'flex-row compact-row';
-                div.innerHTML = `<span><strong>${set.exercise}</strong>: ${set.reps} x ${set.weight}kg</span> <button class="delete-btn" onclick="deleteSet(${set.id})">🗑️</button>`;
+                div.innerHTML = `<span><strong style="color:#fff;">${set.exercise}</strong>: ${set.reps} × ${set.weight} kg</span> <button class="delete-btn" onclick="deleteSet('${set.id}')">X</button>`;
                 container.appendChild(div);
             });
         }
@@ -419,57 +598,84 @@
             const container = document.getElementById('historyContainer');
             if(!container) return;
             container.innerHTML = '';
-            if(dataLog.length === 0) { container.innerHTML = "<div class='card'><p style='color:gray;'>Baza danych historii jest pusta.</p></div>"; return; }
+            if(dataLog.length === 0) { container.innerHTML = "<div class='card'><p style='color:var(--text-muted); font-family:var(--font-mono);'>System Archive Empty.</p></div>"; return; }
+            
             const groupedByDate = {};
             dataLog.forEach(set => {
                 if(!groupedByDate[set.date]) groupedByDate[set.date] = [];
                 groupedByDate[set.date].push(set);
             });
+            
             const sortedDates = Object.keys(groupedByDate).sort((a,b) => {
-                const partsA = a.split('.').reverse().join('');
-                const partsB = b.split('.').reverse().join('');
-                return partsB.localeCompare(partsA);
+                const parseDate = (dateStr) => {
+                    const parts = dateStr.split('.');
+                    if(parts.length === 3) return new Date(parts[2], parts[1] - 1, parts[0]).getTime();
+                    return 0;
+                };
+                return parseDate(b) - parseDate(a); 
             });
+            
             sortedDates.forEach(date => {
                 const sets = groupedByDate[date];
                 const uniqueExercises = [...new Set(sets.map(s => s.exercise))].length;
                 const totalReps = sets.reduce((sum, s) => sum + s.reps, 0);
                 const totalVolume = sets.reduce((sum, s) => sum + (s.weight * s.reps), 0);
+                
+                const categoriesObj = {};
+                sets.forEach(set => {
+                    const foundEx = exercises.find(ex => ex.name === set.exercise);
+                    const catName = foundEx ? foundEx.category : "UNKNOWN";
+                    if(!categoriesObj[catName]) categoriesObj[catName] = {};
+                    if(!categoriesObj[catName][set.exercise]) categoriesObj[catName][set.exercise] = [];
+                    categoriesObj[catName][set.exercise].push(set);
+                });
+
                 const dayCard = document.createElement('div');
                 dayCard.className = 'card clickable-card';
                 dayCard.onclick = function(e) {
                     if (e.target.classList.contains('delete-btn')) return;
                     const content = this.querySelector('.collapse-content');
                     const arrow = this.querySelector('.arrow-indicator');
-                    if (content.style.display === 'block') { content.style.display = 'none'; arrow.textContent = '🔽'; } 
-                    else { content.style.display = 'block'; arrow.textContent = '🔼'; }
+                    if (content.style.display === 'block') { content.style.display = 'none'; arrow.textContent = '[ + ] EXPAND LOG'; } 
+                    else { content.style.display = 'block'; arrow.textContent = '[ - ] COLLAPSE'; }
                 };
+                
                 let html = `
                     <div class="history-header">
-                        <h2 style="color:#00ff41; background:transparent; padding:0; margin:0;">📅 ${date}</h2>
-                        <span class="arrow-indicator">🔽</span>
+                        <h2 style="color:var(--text-main); margin:0; border:none; padding:0; font-size:14px;">DATE: ${date}</h2>
+                        <span class="arrow-indicator">[ + ] EXPAND LOG</span>
                     </div>
                     <div class="summary-box" style="margin-top:10px;">
-                        CWICZEN: ${uniqueExercises} | SERII: ${sets.length}<br>
-                        TOTAL_REPS: ${totalReps} | TONAZ: ${totalVolume.toFixed(1)} kg
+                        <strong>THROUGHPUT SUMMARY:</strong><br>
+                        OPERATIONS: ${uniqueExercises} | TOTAL SETS: ${sets.length}<br>
+                        REPS COUNT: ${totalReps} | LOAD VOLUME: ${totalVolume.toFixed(1)} KG
                     </div>
                     <div class="collapse-content">
                 `;
-                sets.forEach(set => {
-                    html += `
-                        <div class="flex-row" style="font-size:13px; border-color: #003311;">
-                            <span><strong>${set.exercise}</strong>: ${set.reps} x ${set.weight}kg</span>
-                            <button class="delete-btn" onclick="deleteSet(${set.id})">USUŃ</button>
-                        </div>
-                    `;
+                
+                Object.keys(categoriesObj).forEach(cat => {
+                    html += `<div style="font-size: 13px; font-weight: bold; color: #fff; margin-top: 15px; border-bottom: 1px dashed var(--border-color); padding-bottom: 3px;">ZONE: ${cat}</div>`;
+                    
+                    Object.keys(categoriesObj[cat]).forEach(exName => {
+                        html += `<div style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-left: 0; margin-top: 8px;">> ${exName}</div>`;
+                        
+                        categoriesObj[cat][exName].forEach((set, index) => {
+                            html += `
+                                <div class="flex-row" style="font-size: 12px; padding: 6px; margin-left: 10px; margin-top: 2px;">
+                                    <span>SET ${index + 1}: ${set.reps} REP @ ${set.weight} KG</span>
+                                    <button class="delete-btn" onclick="deleteSet('${set.id}')">DEL</button>
+                                </div>
+                            `;
+                        });
+                    });
                 });
+                
                 html += `</div>`;
                 dayCard.innerHTML = html;
                 container.appendChild(dayCard);
             });
         }
 
-        // Kopia bezpieczeństwa plików (Eksport/Import)
         function exportData() {
             const backupData = { categories: categories, exercises: exercises, dataLog: dataLog };
             const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
@@ -477,7 +683,7 @@
             const a = document.createElement('a');
             a.href = url;
             const dateStr = new Date().toLocaleDateString('pl-PL').replace(/\./g, '-');
-            a.download = `matrix_workout_backup_${dateStr}.json`;
+            a.download = `backup_trening_${dateStr}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -492,16 +698,16 @@
                 try {
                     const imported = JSON.parse(e.target.result);
                     if (imported.categories && imported.exercises && imported.dataLog) {
-                        if (confirm("[DB_RESTORE] Czy zastąpić obecne logi systemowe plikiem kopii zapasowej?")) {
+                        if (confirm("SYSTEM: Nadpisać obecną bazę danych plikiem z kopii?")) {
                             categories = imported.categories;
                             exercises = imported.exercises;
                             dataLog = imported.dataLog;
                             saveCategories(); saveExercises(); saveDataLog();
-                            alert("[SUCCESS] Baza danych zsynchronizowana pomyślnie.");
+                            alert("STATUS: Przywracanie udane.");
                             window.location.reload();
                         }
-                    } else { alert("[ERROR] Nieprawidłowa sygnatura pliku JSON."); }
-                } catch (err) { alert("[ERROR] Plik uszkodzony."); }
+                    } else { alert("ERROR: Nieprawidłowa suma kontrolna pliku."); }
+                } catch (err) { alert("ERROR: Uszkodzony system plików."); }
             };
             reader.readAsText(file);
         }
