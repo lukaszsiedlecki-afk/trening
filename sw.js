@@ -1,4 +1,4 @@
-const CACHE_NAME = 'trening-v15.1'; // Podbicie wersji do v11
+const CACHE_NAME = 'trening-v16'; 
 const ASSETS = [
   './',
   './index.html',
