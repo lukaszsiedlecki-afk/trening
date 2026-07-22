@@ -3,26 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mój Dziennik Treningowy - Live Tracker</title>
+    <title>Dziennik Treningowy - Live Monitor</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0a0a0a">
     
-    <!-- Import prawdziwych, technicznych czcionek używanych w monitorach danych -->
+    <!-- Techniczne czcionki dla interfejsów monitorujących -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
-        /* [TACTICAL MONITOR STYLES - HORMUZ STRAIT INSPIRED] */
+        /* [TACTICAL MONITOR STYLES - PL EDITION] */
         :root {
-            --bg-base: #0a0a0a;         /* Prawdziwa, głęboka czerń */
+            --bg-base: #0a0a0a;         /* Głęboka czerń */
             --bg-card: #171717;         /* Grafitowy panel danych */
             --bg-input: #000000;        /* Najciemniejsze pole do wpisywania */
             --border-color: #262626;    /* Surowa, stalowa ramka */
             --text-main: #f5f5f5;       /* Złamana biel do czytania */
             --text-muted: #a3a3a3;      /* Szary techniczny do opisów */
-            --accent-red: #dc2626;      /* Crisis Red */
-            --accent-green: #16a34a;    /* System Active Green */
+            --accent-red: #dc2626;      /* Kolor ostrzegawczy / kasowania */
+            --accent-green: #16a34a;    /* Kolor aktywnego statusu / dodawania */
+            --accent-amber: #d97706;    /* Kolor informacyjny */
+            --accent-cyan: #0891b2;     /* Kolor struktury / podtytułów */
             --font-sans: 'Inter', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
         }
@@ -36,7 +38,7 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* --- STYLIZACJA NAGŁÓWKA WZOROWANA NA LIVE TRACKERZE --- */
+        /* --- NAGŁÓWEK SYSTEMOWY --- */
         .live-tracker-header {
             border: 1px solid var(--border-color);
             background: var(--bg-card);
@@ -50,13 +52,15 @@
             margin: 0 0 5px 0;
             font-weight: 700;
             letter-spacing: -0.5px;
+            text-transform: uppercase;
         }
 
         .live-tracker-header .subtitle {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-muted);
             margin: 0 0 15px 0;
             font-family: var(--font-mono);
+            text-transform: uppercase;
         }
 
         .status-grid {
@@ -97,7 +101,7 @@
             100% { box-shadow: 0 0 0 0 rgba(currentColor, 0); }
         }
 
-        /* --- KARTY DANYCH (PANELS) --- */
+        /* --- KARTY DANYCH --- */
         .card { 
             background: var(--bg-card); 
             padding: 15px; 
@@ -126,7 +130,7 @@
             text-transform: uppercase;
         }
 
-        /* --- POLA WPISYWANIA I PRZYCISKI --- */
+        /* --- FORMULARZE --- */
         select, input { 
             width: 100%; 
             padding: 12px; 
@@ -176,7 +180,7 @@
         }
         .delete-btn:hover { background: var(--accent-red); color: white; }
 
-        /* --- TABELE I METRYKI (HISTORY/SUMMARY) --- */
+        /* --- BLOKI DANYCH (OSTATNIA SESJA / HISTORIA) --- */
         .flex-row { 
             display: flex; 
             justify-content: space-between; 
@@ -189,12 +193,13 @@
         .last-session { 
             background: transparent; 
             border: 1px solid var(--border-color);
-            border-left: 3px solid var(--accent-red); 
+            border-left: 3px solid var(--accent-amber); 
             padding: 12px; 
             margin-bottom: 15px; 
-            font-size: 13px; 
+            font-size: 12px; 
             font-family: var(--font-mono);
             color: var(--text-muted);
+            line-height: 1.5;
         }
 
         .summary-box { 
@@ -203,7 +208,7 @@
             border-top: 3px solid var(--accent-green);
             padding: 12px; 
             margin-bottom: 10px; 
-            font-size: 12px; 
+            font-size: 11px; 
             font-family: var(--font-mono);
             color: var(--text-muted);
             line-height: 1.6;
@@ -215,9 +220,9 @@
         .clickable-card { cursor: pointer; }
         .history-header { display: flex; justify-content: space-between; align-items: center; }
         .collapse-content { display: none; margin-top: 15px; }
-        .arrow-indicator { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+        .arrow-indicator { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
         
-        .version-tag { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 20px; font-family: var(--font-mono); }
+        .version-tag { font-size: 10px; color: var(--text-muted); text-align: center; margin-top: 20px; font-family: var(--font-mono); }
         .nuclear-link { color: var(--accent-red); cursor: pointer; margin-left: 10px; text-decoration: none; border-bottom: 1px dotted var(--accent-red); }
 
         /* --- DOLNE MENU --- */
@@ -251,22 +256,21 @@
         .app-page { display: none; }
         .app-page.active { display: block; }
 
-        /* Wymuszamy na sztywno jeden motyw, pozbywając się jasnego wariantu, bo monitory danych są zawsze ciemne */
         .theme-toggle-btn { display: none; }
     </style>
 </head>
 <body>
 
-    <!-- NOWY NAGŁÓWEK: HORMUZ MONITOR STYLE -->
+    <!-- NAGŁÓWEK SYSTEMOWY -->
     <div class="live-tracker-header">
-        <h1>GYM WORKOUT LIVE TRACKER</h1>
-        <p class="subtitle">Real-Time Performance & Crisis Monitor.</p>
+        <h1>PANEL KONTROLNY TRENINGU</h1>
+        <p class="subtitle">Monitorowanie Obciążeń i Wydajności w Czasie Rzeczywistym</p>
         <div class="status-grid">
             <div class="status-pill active">
-                <span class="pulse-dot"></span> LIVE
+                <span class="pulse-dot"></span> STATUS: AKTYWNY
             </div>
             <div class="status-pill">
-                DATABASE: SECURE
+                BAZA: ZABEZPIECZONA
             </div>
         </div>
     </div>
@@ -274,41 +278,42 @@
     <!-- STRONA 1: TRENING -->
     <div id="page-workout" class="app-page active">
         <div class="card">
-            <h2>Add Record — New Set Entry</h2>
+            <h2>REJESTRACJA DANYCH — NOWA SERIA</h2>
             
-            <label for="categorySelect">Target Zone (Partia):</label>
+            <label for="categorySelect">Strefa Docelowa (Partia):</label>
             <select id="categorySelect" onchange="updateExerciseDropdown()"></select>
 
-            <label for="exerciseSelect">Operation (Ćwiczenie):</label>
+            <label for="exerciseSelect">Operacja (Ćwiczenie):</label>
             <select id="exerciseSelect" onchange="onExerciseChange()"></select>
             
-            <div id="lastSessionInfo" class="last-session">Awaiting history payload...</div>
+            <!-- PRZEBUDOWANY BLOK INFORMACYJNY O OSTATNIEJ SESJI -->
+            <div id="lastSessionInfo" class="last-session">Oczekiwanie na dane z archiwum...</div>
             
-            <label for="repsInput">Reps Count:</label>
+            <label for="repsInput">Liczba Powtórzeń:</label>
             <input type="number" id="repsInput" placeholder="0" inputmode="numeric">
 
-            <label for="weightInput">Load Factor (kg):</label>
-            <input type="number" id="weightInput" placeholder="0" step="0.5" inputmode="decimal">
+            <label for="weightInput">Obciążenie (kg):</label>
+            <input type="number" id="weightInput" placeholder="0.0" step="0.5" inputmode="decimal">
             
-            <button onclick="addSet()">LOG DATA ENTRY</button>
+            <button onclick="addSet()">ZAPISZ DANE DO LOGU</button>
         </div>
 
         <div class="card compact-card">
-            <h2>Today's Activity Log — <span id="todayDateLabel"></span></h2>
+            <h2>DZISIEJSZY DZIENNIK AKTYWNOŚCI — <span id="todayDateLabel"></span></h2>
             <div id="todaySetsList"></div>
         </div>
 
         <div class="version-tag">
-            VER: v17_MONITOR | <span class="nuclear-link" onclick="forceNuclearReset()">[WIPE DATABASE]</span>
+            WER: v18_PL_MONITOR | <span class="nuclear-link" onclick="forceNuclearReset()">[RESET BAZY]</span>
         </div>
     </div>
 
     <!-- STRONA 2: HISTORIA -->
     <div id="page-history" class="app-page">
         <div class="card">
-            <h2>Data Retention & Backup</h2>
-            <button class="backup-btn" onclick="exportData()">DOWNLOAD DATABASE (.JSON)</button>
-            <button class="backup-btn" onclick="document.getElementById('importFileInput').click()">UPLOAD PAYLOAD (.JSON)</button>
+            <h2>ARCHIWIZACJA I KOPIA ZAPASOWA</h2>
+            <button class="backup-btn" onclick="exportData()">POBIERZ BAZĘ DANYCH (.JSON)</button>
+            <button class="backup-btn" onclick="document.getElementById('importFileInput').click()">WGRAJ BAZĘ DANYCH (.JSON)</button>
             <input type="file" id="importFileInput" style="display:none" accept=".json" onchange="importData(event)">
         </div>
 
@@ -318,35 +323,34 @@
     <!-- STRONA 3: USTAWIENIA -->
     <div id="page-exercises" class="app-page">
         <div class="card">
-            <h2>Category Configuration</h2>
-            <input type="text" id="newCategoryName" placeholder="New target zone...">
-            <button class="accent-btn" onclick="addCategory()">ADD ZONE</button>
+            <h2>KONFIGURACJA STREF (PARTII CIAŁA)</h2>
+            <input type="text" id="newCategoryName" placeholder="Nazwa nowej strefy (np. Łydki)...">
+            <button class="accent-btn" onclick="addCategory()">DODAJ STREFĘ</button>
             <div id="customCategoriesList"></div>
         </div>
 
         <div class="card">
-            <h2>Exercise Registry</h2>
-            <input type="text" id="newExerciseName" placeholder="New operation name...">
-            <label for="newExerciseCategory">Target Zone:</label>
+            <h2>REJESTR ĆWICZEŃ</h2>
+            <input type="text" id="newExerciseName" placeholder="Nazwa nowego ćwiczenia...">
+            <label for="newExerciseCategory">Przypisz do Strefy Docelowej:</label>
             <select id="newExerciseCategory"></select>
-            <button class="accent-btn" onclick="addExercise()">ADD OPERATION</button>
+            <button class="accent-btn" onclick="addExercise()">DODAJ ĆWICZENIE</button>
         </div>
 
         <div class="card">
-            <h2>Registry Database</h2>
+            <h2>BAZA DANYCH REJESTRU</h2>
             <div id="customExercisesList"></div>
         </div>
     </div>
 
     <!-- DOLNE MENU -->
     <div class="nav-bar">
-        <div id="nav-workout" class="nav-item active" onclick="switchPage('workout')">Tracker</div>
-        <div id="nav-history" class="nav-item" onclick="switchPage('history')">History</div>
-        <div id="nav-exercises" class="nav-item" onclick="switchPage('exercises')">Config</div>
+        <div id="nav-workout" class="nav-item active" onclick="switchPage('workout')">Trening</div>
+        <div id="nav-history" class="nav-item" onclick="switchPage('history')">Historia</div>
+        <div id="nav-exercises" class="nav-item" onclick="switchPage('exercises')">Baza</div>
     </div>
 
     <script>
-        // Bieżący kod aplikacji v15.1 - Zachowany bez zmian logicznych
         let categories = JSON.parse(localStorage.getItem('categories')) || ["Klatka", "Plecy", "Biceps", "Triceps", "Nogi", "Brzuch"];
 
         const defaultExercises = [
@@ -358,7 +362,7 @@
         let exercises = JSON.parse(localStorage.getItem('exercises')) || defaultExercises;
         let dataLog = JSON.parse(localStorage.getItem('dataLog')) || [];
 
-        // NAPRAWA BAZY DANYCH
+        // Nadawanie unikalnych ID starym wpisom
         let needsSave = false;
         dataLog = dataLog.map(set => {
             if (!set.id) {
@@ -381,7 +385,7 @@
         }
 
         function init() {
-            document.getElementById('todayDateLabel').innerText = new Date().toLocaleDateString('en-US');
+            document.getElementById('todayDateLabel').innerText = new Date().toLocaleDateString('pl-PL');
             updateCategoryDropdowns();
             updateExerciseDropdown();
             renderTodaySets();
@@ -391,9 +395,9 @@
         }
 
         function forceNuclearReset() {
-            const wantBackup = confirm("DANGER: Czy chcesz pobrać plik JSON z bazą danych przed formatowaniem?");
+            const wantBackup = confirm("OSTRZEŻENIE: Czy chcesz pobrać plik JSON z bazą danych przed formatowaniem?");
             if (wantBackup) { exportData(); }
-            if (confirm("POTWIERDŹ: Całkowite wyczyszczenie rejestru systemu?")) {
+            if (confirm("POTWIERDŹ: Całkowite wyczyszczenie pamięci podręcznej i bazy danych?")) {
                 localStorage.clear();
                 window.location.reload();
             }
@@ -407,17 +411,17 @@
                 saveCategories();
                 input.value = '';
                 init();
-            } else if(categories.includes(name)) { alert("ERROR: Zdublowany wpis w bazie."); }
+            } else if(categories.includes(name)) { alert("BŁĄD: Taka strefa (partia) już istnieje w bazie."); }
         }
 
         function deleteCategory(index) {
             const catToDelete = categories[index];
             const hasExercises = exercises.some(ex => ex.category === catToDelete);
             if (hasExercises) {
-                alert(`BLOKADA: Przeniesione zależności. Usuń najpierw ćwiczenia z sekcji "${catToDelete}".`);
+                alert(`BLOKADA SYSTEMU: Usuń najpierw wszystkie ćwiczenia przypisane do strefy "${catToDelete}".`);
                 return;
             }
-            if (confirm(`Usunąć sektor bazowy: "${catToDelete}"?`)) {
+            if (confirm(`Potwierdź usunięcie strefy bazowej: "${catToDelete}"?`)) {
                 categories.splice(index, 1);
                 saveCategories();
                 init();
@@ -431,7 +435,7 @@
             categories.forEach((cat, index) => {
                 const div = document.createElement('div');
                 div.className = 'flex-row';
-                div.innerHTML = `<span><strong>${cat}</strong></span> <button class="delete-btn" onclick="deleteCategory(${index})">DELETE</button>`;
+                div.innerHTML = `<span><strong style="color:var(--text-main);">${cat}</strong></span> <button class="delete-btn" onclick="deleteCategory(${index})">USUŃ</button>`;
                 container.appendChild(div);
             });
         }
@@ -489,21 +493,64 @@
             autoFillInputs();
         }
 
+        // --- CAŁKOWICIE PRZEBUDOWANA FUNKCJA "OSTATNIO" ---
         function updateLastSessionView() {
-            const selectedExercise = document.getElementById('exerciseSelect').value;
+            const selectedCat = document.getElementById('categorySelect').value;
+            const selectedEx = document.getElementById('exerciseSelect').value;
             const infoBox = document.getElementById('lastSessionInfo');
-            if (!selectedExercise) { infoBox.innerHTML = "SYSTEM: Wybierz operację do monitorowania."; return; }
+            
+            if (!selectedEx) { infoBox.innerHTML = "SYSTEM: Wybierz operację do monitorowania."; return; }
             
             const today = new Date().toLocaleDateString('pl-PL');
-            const exerciseHistory = dataLog.filter(set => set.exercise === selectedExercise && set.date !== today);
+            let html = '';
+
+            // 1. DANE DLA WYBRANEGO ĆWICZENIA
+            const exHistory = dataLog.filter(set => set.exercise === selectedEx && set.date !== today);
             
-            if (exerciseHistory.length === 0) { infoBox.innerHTML = "STATUS: Brak wcześniejszych wpisów dla tego obiektu."; return; }
-            
-            const date = exerciseHistory[exerciseHistory.length - 1].date;
-            const lastSessionSets = exerciseHistory.filter(set => set.date === date);
-            
-            let html = `<strong style="color:#fff;">[ PREV RECORD: ${date} ]</strong><br>`;
-            lastSessionSets.forEach((set, index) => { html += `SET ${index + 1} | ${set.reps} REPS @ ${set.weight} KG<br>`; });
+            if (exHistory.length === 0) { 
+                html += `<strong style="color:var(--text-main);">[ OSTATNIO: ${selectedEx} ]</strong><br><span style="color:var(--text-muted);">Brak wcześniejszych wpisów.</span>`; 
+            } else {
+                const lastExDate = exHistory[exHistory.length - 1].date;
+                const lastExSets = exHistory.filter(set => set.date === lastExDate);
+                
+                html += `<strong style="color:var(--accent-amber);">[ OSTATNIO: ${selectedEx} (${lastExDate}) ]</strong><br>`;
+                lastExSets.forEach((set, i) => { 
+                    html += `<span style="color:var(--text-main);">SERIA ${i + 1}:</span> ${set.reps} POWT x ${set.weight} KG<br>`; 
+                });
+            }
+
+            // Separator wizualny
+            html += `<hr style="border:0; border-top:1px dashed var(--border-color); margin: 12px 0;">`;
+
+            // 2. DANE DLA CAŁEJ STREFY (ŚCIĄGA Z PARTII CIAŁA)
+            // Funkcja pomocnicza znajdująca partię historycznego ćwiczenia
+            const getCatForEx = (exName) => {
+                const found = exercises.find(e => e.name === exName);
+                return found ? found.category : "Inne";
+            };
+
+            const catHistory = dataLog.filter(set => getCatForEx(set.exercise) === selectedCat && set.date !== today);
+
+            if(catHistory.length === 0) {
+                html += `<strong style="color:var(--accent-cyan);">[ RAPORT STREFY: ${selectedCat} ]</strong><br><span style="color:var(--text-muted);">Brak danych dla tej strefy.</span>`;
+            } else {
+                const lastCatDate = catHistory[catHistory.length - 1].date;
+                const lastCatSets = catHistory.filter(set => set.date === lastCatDate);
+                
+                // Grupowanie wyników ściągi po nazwie ćwiczenia
+                const groupedCat = {};
+                lastCatSets.forEach(set => {
+                    if(!groupedCat[set.exercise]) groupedCat[set.exercise] = [];
+                    groupedCat[set.exercise].push(set);
+                });
+
+                html += `<strong style="color:var(--accent-cyan);">[ TRENING STREFY (${lastCatDate}) ]</strong><br>`;
+                Object.keys(groupedCat).forEach(exName => {
+                    const setsStr = groupedCat[exName].map(s => `${s.reps}x${s.weight}`).join(', ');
+                    html += `<div style="margin-top:4px;"><span style="color:var(--text-main);">> ${exName}:</span> <span style="color:var(--text-muted);">${setsStr}</span></div>`;
+                });
+            }
+
             infoBox.innerHTML = html;
         }
 
@@ -535,11 +582,11 @@
                 saveExercises();
                 input.value = '';
                 init();
-            } else if (exists) { alert("ERROR: Obiekt już istnieje w rejestrze."); }
+            } else if (exists) { alert("BŁĄD: Takie ćwiczenie już istnieje w rejestrze."); }
         }
 
         function deleteExercise(index) {
-            if(confirm(`Wymaga potwierdzenia: Usunąć "${exercises[index].name}"?`)) {
+            if(confirm(`Wymagane potwierdzenie: Usunąć z bazy "${exercises[index].name}"?`)) {
                 exercises.splice(index, 1);
                 saveExercises();
                 init();
@@ -553,7 +600,7 @@
             exercises.forEach((ex, index) => {
                 const div = document.createElement('div');
                 div.className = 'flex-row';
-                div.innerHTML = `<span><strong style="color:var(--text-main);">${ex.name}</strong> <small style="color:var(--text-muted);">[${ex.category}]</small></span> <button class="delete-btn" onclick="deleteExercise(${index})">DEL</button>`;
+                div.innerHTML = `<span><strong style="color:var(--text-main);">${ex.name}</strong> <small style="color:var(--text-muted);">[${ex.category}]</small></span> <button class="delete-btn" onclick="deleteExercise(${index})">USUŃ</button>`;
                 container.appendChild(div);
             });
         }
@@ -563,7 +610,7 @@
             const weight = parseFloat(document.getElementById('weightInput').value);
             const reps = parseInt(document.getElementById('repsInput').value);
             const today = new Date().toLocaleDateString('pl-PL');
-            if (!exercise || isNaN(weight) || isNaN(reps)) { alert("SYSTEM ALERT: Invalid input format."); return; }
+            if (!exercise || isNaN(weight) || isNaN(reps)) { alert("BŁĄD SYSTEMU: Wprowadzono niepoprawne parametry liczbowe."); return; }
             dataLog.push({ id: Date.now(), exercise, weight, reps, date: today });
             saveDataLog();
             renderTodaySets();
@@ -585,7 +632,7 @@
             container.innerHTML = '';
             const today = new Date().toLocaleDateString('pl-PL');
             const todaySets = dataLog.filter(set => set.date === today);
-            if (todaySets.length === 0) { container.innerHTML = "<p style='color:var(--text-muted); font-size:12px; font-family:var(--font-mono);'>No data recorded today.</p>"; return; }
+            if (todaySets.length === 0) { container.innerHTML = "<p style='color:var(--text-muted); font-size:11px; font-family:var(--font-mono);'>Brak wpisów z dzisiejszej sesji.</p>"; return; }
             todaySets.forEach(set => {
                 const div = document.createElement('div');
                 div.className = 'flex-row compact-row';
@@ -598,7 +645,7 @@
             const container = document.getElementById('historyContainer');
             if(!container) return;
             container.innerHTML = '';
-            if(dataLog.length === 0) { container.innerHTML = "<div class='card'><p style='color:var(--text-muted); font-family:var(--font-mono);'>System Archive Empty.</p></div>"; return; }
+            if(dataLog.length === 0) { container.innerHTML = "<div class='card'><p style='color:var(--text-muted); font-family:var(--font-mono);'>Archiwum systemowe jest puste.</p></div>"; return; }
             
             const groupedByDate = {};
             dataLog.forEach(set => {
@@ -624,7 +671,7 @@
                 const categoriesObj = {};
                 sets.forEach(set => {
                     const foundEx = exercises.find(ex => ex.name === set.exercise);
-                    const catName = foundEx ? foundEx.category : "UNKNOWN";
+                    const catName = foundEx ? foundEx.category : "NIEZNANE";
                     if(!categoriesObj[catName]) categoriesObj[catName] = {};
                     if(!categoriesObj[catName][set.exercise]) categoriesObj[catName][set.exercise] = [];
                     categoriesObj[catName][set.exercise].push(set);
@@ -636,34 +683,34 @@
                     if (e.target.classList.contains('delete-btn')) return;
                     const content = this.querySelector('.collapse-content');
                     const arrow = this.querySelector('.arrow-indicator');
-                    if (content.style.display === 'block') { content.style.display = 'none'; arrow.textContent = '[ + ] EXPAND LOG'; } 
-                    else { content.style.display = 'block'; arrow.textContent = '[ - ] COLLAPSE'; }
+                    if (content.style.display === 'block') { content.style.display = 'none'; arrow.textContent = '[ + ] ROZWIŃ LOG'; } 
+                    else { content.style.display = 'block'; arrow.textContent = '[ - ] ZWIŃ'; }
                 };
                 
                 let html = `
                     <div class="history-header">
-                        <h2 style="color:var(--text-main); margin:0; border:none; padding:0; font-size:14px;">DATE: ${date}</h2>
-                        <span class="arrow-indicator">[ + ] EXPAND LOG</span>
+                        <h2 style="color:var(--text-main); margin:0; border:none; padding:0; font-size:13px;">DATA: ${date}</h2>
+                        <span class="arrow-indicator">[ + ] ROZWIŃ LOG</span>
                     </div>
                     <div class="summary-box" style="margin-top:10px;">
-                        <strong>THROUGHPUT SUMMARY:</strong><br>
-                        OPERATIONS: ${uniqueExercises} | TOTAL SETS: ${sets.length}<br>
-                        REPS COUNT: ${totalReps} | LOAD VOLUME: ${totalVolume.toFixed(1)} KG
+                        <strong style="color:var(--accent-cyan);">PODSUMOWANIE WYDAJNOŚCI:</strong><br>
+                        ĆWICZENIA: ${uniqueExercises} | SERIE: ${sets.length}<br>
+                        POWTÓRZENIA: ${totalReps} | TONAŻ: ${totalVolume.toFixed(1)} KG
                     </div>
                     <div class="collapse-content">
                 `;
                 
                 Object.keys(categoriesObj).forEach(cat => {
-                    html += `<div style="font-size: 13px; font-weight: bold; color: #fff; margin-top: 15px; border-bottom: 1px dashed var(--border-color); padding-bottom: 3px;">ZONE: ${cat}</div>`;
+                    html += `<div style="font-size: 13px; font-weight: bold; color: var(--accent-green); margin-top: 15px; border-bottom: 1px dashed var(--border-color); padding-bottom: 3px;">STREFA: ${cat}</div>`;
                     
                     Object.keys(categoriesObj[cat]).forEach(exName => {
-                        html += `<div style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-left: 0; margin-top: 8px;">> ${exName}</div>`;
+                        html += `<div style="font-size: 12px; font-weight: 600; color: var(--text-main); margin-left: 0; margin-top: 8px;">> ${exName}</div>`;
                         
                         categoriesObj[cat][exName].forEach((set, index) => {
                             html += `
-                                <div class="flex-row" style="font-size: 12px; padding: 6px; margin-left: 10px; margin-top: 2px;">
-                                    <span>SET ${index + 1}: ${set.reps} REP @ ${set.weight} KG</span>
-                                    <button class="delete-btn" onclick="deleteSet('${set.id}')">DEL</button>
+                                <div class="flex-row" style="font-size: 11px; padding: 6px; margin-left: 10px; margin-top: 2px;">
+                                    <span>SERIA ${index + 1}: ${set.reps} POWT x ${set.weight} KG</span>
+                                    <button class="delete-btn" onclick="deleteSet('${set.id}')">USUŃ</button>
                                 </div>
                             `;
                         });
@@ -703,11 +750,11 @@
                             exercises = imported.exercises;
                             dataLog = imported.dataLog;
                             saveCategories(); saveExercises(); saveDataLog();
-                            alert("STATUS: Przywracanie udane.");
+                            alert("STATUS: Przywracanie danych zakończone sukcesem.");
                             window.location.reload();
                         }
-                    } else { alert("ERROR: Nieprawidłowa suma kontrolna pliku."); }
-                } catch (err) { alert("ERROR: Uszkodzony system plików."); }
+                    } else { alert("BŁĄD: Nieprawidłowa suma kontrolna pliku JSON."); }
+                } catch (err) { alert("BŁĄD: Plik jest uszkodzony."); }
             };
             reader.readAsText(file);
         }
